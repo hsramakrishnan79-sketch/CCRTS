@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS complaints (
     email TEXT,
     category TEXT,
     priority TEXT,
+    assigned_to TEXT,
     description TEXT,
     status TEXT DEFAULT 'Open',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
