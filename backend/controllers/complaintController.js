@@ -69,6 +69,53 @@ const getComplaints = (req, res) => {
     });
   }
 };
+const getComplaintStats = (req, res) => {
+  try {
+    const total = db
+      .prepare(
+        "SELECT COUNT(*) AS count FROM complaints"
+      )
+      .get();
+
+    const pending = db
+      .prepare(
+        `SELECT COUNT(*) AS count
+         FROM complaints
+         WHERE status = 'Pending'`
+      )
+      .get();
+
+    const inProgress = db
+      .prepare(
+        `SELECT COUNT(*) AS count
+         FROM complaints
+         WHERE status = 'In Progress'`
+      )
+      .get();
+
+    const resolved = db
+      .prepare(
+        `SELECT COUNT(*) AS count
+         FROM complaints
+         WHERE status = 'Resolved'`
+      )
+      .get();
+
+    res.status(200).json({
+      total: total.count,
+      pending: pending.count,
+      inProgress:
+        inProgress.count,
+      resolved: resolved.count,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Server Error",
+    });
+  }
+};
 
 const updateComplaintStatus = (req, res) => {
   try {
@@ -202,9 +249,10 @@ const assignComplaint = (req, res) => {
 module.exports = {
   createComplaint,
   getComplaints,
-  updateComplaintStatus,
   getComplaintById,
-  deleteComplaint,
+  updateComplaintStatus,
   assignComplaint,
+  deleteComplaint,
+  getComplaintStats,
 };
 

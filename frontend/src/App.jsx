@@ -1,25 +1,50 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-function Login() {
-  return <h1>Login Page</h1>;
-}
-
-function Register() {
-  return <h1>Register Page</h1>;
-}
-
-function Dashboard() {
-  return <h1>Dashboard</h1>;
-}
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Dashboard from "./pages/Dashboard";
+import CreateComplaint from "./pages/CreateComplaint";
+import ViewComplaints from "./pages/ViewComplaints";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-      </Routes>
+
+        <Route
+          path="/register"
+          element={<Register />}
+        />
+
+        <Route
+          path="/dashboard"
+          element={
+          <ProtectedRoute>
+          <Dashboard />
+         </ProtectedRoute>
+          }
+        />
+
+  <Route
+    path="/create-complaint"
+    element={
+      <ProtectedRoute>
+        <CreateComplaint />
+      </ProtectedRoute>
+    }
+  />
+
+  <Route
+    path="/view-complaints"
+    element={
+      <ProtectedRoute>
+        <ViewComplaints />
+      </ProtectedRoute>
+    }
+  />
+</Routes>
     </BrowserRouter>
   );
 }

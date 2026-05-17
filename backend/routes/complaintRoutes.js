@@ -5,11 +5,14 @@ const router = express.Router();
 const {
   createComplaint,
   getComplaints,
-  updateComplaintStatus,
   getComplaintById,
-  deleteComplaint,
+  updateComplaintStatus,
   assignComplaint,
-} = require("../controllers/complaintController");
+  deleteComplaint,
+  getComplaintStats,
+} = require(
+  "../controllers/complaintController"
+);
 
 // test route
 router.get("/", (req, res) => {
@@ -24,6 +27,10 @@ router.post("/create", createComplaint);
 // get all complaints
 router.get("/all", getComplaints);
 
+router.get(
+  "/stats",
+  getComplaintStats
+);
 // get complaint by ID
 router.get("/:complaint_id", getComplaintById);
 
