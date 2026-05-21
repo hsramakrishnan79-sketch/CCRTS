@@ -1,0 +1,93 @@
+const bcrypt = require("bcryptjs");
+const db = require("../config/db");
+
+const VALID_ROLES = ["admin", "agent", "supervisor", "customer", "quality"];
+
+// GET /api/users/all
+const getAllUsers = (req, res) => {
+  try {
+    const users = db
+      .prepare("SELECT id, name, email, role FROM users ORDER BY id ASC")
+      .all();
+    res.status(200).json(users);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+// POST /api/users  — admin creates a user
+const createUser = async (req, res) => {
+  try {
+    const { name, email, password, role } = req.body;
+
+    if (!name || !email || !password || !role) {
+      return res.status(400).json({ message: "name, email, password and role are required" });
+    }
+
+    if (!VALID_ROLES.includes(role)) {
+      return res.status(400).json({ message: `Invalid role. Must be one of: ${VALID_ROLES.join(", ")}` });
+    }
+
+    const existing = db.prepare("SELECT id FROM users WHERE email = ?").get(email);
+    if (existing) {
+      return res.status(409).json({ message: "A user with that email already exists" });
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+    db.prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)")
+      .run(name, email, hashed, role);
+
+    res.status(201).json({ message: "User created successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+// PUT /api/users/:id/role
+const updateUserRole = (req, res) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+
+    if (!VALID_ROLES.includes(role)) {
+      return res.status(400).json({ message: `Invalid role. Must be one of: ${VALID_ROLES.join(", ")}` });
+    }
+
+    if (parseInt(id, 10) === req.user.id) {
+      return res.status(400).json({ message: "You cannot change your own role" });
+    }
+
+    const user = db.prepare("SELECT id FROM users WHERE id = ?").get(id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    db.prepare("UPDATE users SET role = ? WHERE id = ?").run(role, id);
+    res.status(200).json({ message: "Role updated successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+// DELETE /api/users/:id
+const deleteUser = (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (parseInt(id, 10) === req.user.id) {
+      return res.status(400).json({ message: "You cannot delete your own account" });
+    }
+
+    const user = db.prepare("SELECT id FROM users WHERE id = ?").get(id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    db.prepare("DELETE FROM users WHERE id = ?").run(id);
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+module.exports = { getAllUsers, createUser, updateUserRole, deleteUser };
