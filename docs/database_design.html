@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Database Design – CCRTS</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #333; font-size: 14px; }
+  .container { max-width: 960px; margin: 40px auto; background: white; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.10); overflow: hidden; }
+  .cover { background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; padding: 60px 48px; }
+  .cover h1 { font-size: 32px; font-weight: 800; letter-spacing: 1px; margin-bottom: 8px; }
+  .cover .subtitle { font-size: 16px; opacity: 0.8; margin-bottom: 32px; }
+  .cover .meta { display: flex; gap: 32px; flex-wrap: wrap; }
+  .cover .meta div { background: rgba(255,255,255,0.12); border-radius: 8px; padding: 12px 20px; }
+  .cover .meta label { font-size: 11px; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; display: block; }
+  .cover .meta span { font-size: 14px; font-weight: 600; }
+  .toc { background: #f8f9fa; padding: 32px 48px; border-bottom: 1px solid #e9ecef; }
+  .toc h2 { font-size: 16px; color: #1e3c72; font-weight: 700; margin-bottom: 16px; }
+  .toc ol { padding-left: 20px; line-height: 2; }
+  .toc a { color: #2a5298; text-decoration: none; font-size: 13px; }
+  .body { padding: 48px; }
+  h2.section { font-size: 20px; color: #1e3c72; font-weight: 700; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 3px solid #1e3c72; }
+  h3.sub { font-size: 15px; color: #2a5298; font-weight: 600; margin: 24px 0 10px; }
+  p { line-height: 1.8; color: #555; margin-bottom: 12px; }
+  ul { padding-left: 22px; line-height: 2; color: #555; margin-bottom: 12px; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 24px; font-size: 13px; }
+  th { background: #1e3c72; color: white; padding: 10px 14px; text-align: left; font-weight: 600; }
+  td { padding: 9px 14px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+  tr:nth-child(even) td { background: #f8f9fa; }
+  .callout { background: #eef4ff; border-left: 4px solid #1e3c72; padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 16px 0; font-size: 13px; color: #1e3c72; }
+  .warn { background: #fff8e1; border-left: 4px solid #ffc107; padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 16px 0; font-size: 13px; color: #856404; }
+  code { background: #f0f0f0; padding: 1px 6px; border-radius: 4px; font-family: monospace; font-size: 12px; color: #c7254e; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+  .pk   { background: #ffd700; color: #333; }
+  .fk   { background: #cce5ff; color: #004085; }
+  .nn   { background: #d4edda; color: #155724; }
+  .uq   { background: #e2d9f3; color: #4a1b8c; }
+  .def  { background: #f0f0f0; color: #555; }
+  .chk  { background: #f8d7da; color: #721c24; }
+  .table-card { border: 2px solid #1e3c72; border-radius: 10px; overflow: hidden; margin: 24px 0; }
+  .table-header { background: #1e3c72; color: white; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; }
+  .table-header h3 { font-size: 15px; font-weight: 700; }
+  .table-header span { font-size: 12px; opacity: 0.8; }
+  .table-header table { margin: 0; }
+  .er-diagram { background: #f8f9fa; border-radius: 10px; padding: 24px; margin: 16px 0; }
+  .er-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+  .er-entity { background: #1e3c72; color: white; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; }
+  .er-rel { font-size: 12px; color: #555; text-align: center; }
+  .er-label { background: #f0f0f0; border-radius: 6px; padding: 4px 10px; font-size: 11px; color: #555; }
+  .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 16px 0; }
+  .summary-card { background: #f8f9fa; border-radius: 8px; padding: 16px; text-align: center; border-top: 3px solid #1e3c72; }
+  .summary-card .num { font-size: 28px; font-weight: 800; color: #1e3c72; }
+  .summary-card .lbl { font-size: 12px; color: #888; margin-top: 4px; }
+  .sql-block { background: #1e3c72; color: #e8f0fe; padding: 20px 24px; border-radius: 8px; font-family: monospace; font-size: 12px; line-height: 1.9; margin: 12px 0; overflow-x: auto; }
+  .sql-block .kw { color: #ffd700; }
+  .sql-block .cm { color: #90caf9; opacity: 0.7; }
+  .footer { background: #f8f9fa; padding: 24px 48px; border-top: 1px solid #e9ecef; text-align: center; font-size: 12px; color: #aaa; }
+  @media print {
+    body { background: white; }
+    .container { box-shadow: none; border-radius: 0; margin: 0; }
+    .cover, .table-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .summary-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="cover">
+    <h1>Database Design Document</h1>
+    <div class="subtitle">Customer Complaint &amp; Resolution Tracking System (CCRTS)</div>
+    <div class="meta">
+      <div><label>Version</label><span>1.0</span></div>
+      <div><label>Phase</label><span>Phase 1</span></div>
+      <div><label>Date</label><span>May 2026</span></div>
+      <div><label>DB Engine</label><span>SQLite</span></div>
+    </div>
+  </div>
+
+  <div class="toc">
+    <h2>Table of Contents</h2>
+    <ol>
+      <li><a href="#s1">Database Overview</a></li>
+      <li><a href="#s2">Entity Relationship Summary</a></li>
+      <li><a href="#s3">Table: roles</a></li>
+      <li><a href="#s3b">Table: categories</a></li>
+      <li><a href="#s4">Table: users</a></li>
+      <li><a href="#s5">Table: complaints</a></li>
+      <li><a href="#s6">Table: complaint_history</a></li>
+      <li><a href="#s7">Table: attachments</a></li>
+      <li><a href="#s8">Table: feedback</a></li>
+      <li><a href="#s9">Table: notifications</a></li>
+      <li><a href="#s9b">Table: agent_categories</a></li>
+      <li><a href="#s9c">Table: cross_category_assignments</a></li>
+      <li><a href="#s10">SLA Rules Reference</a></li>
+      <li><a href="#s11">Migration Strategy</a></li>
+      <li><a href="#s12">Design Decisions</a></li>
+    </ol>
+  </div>
+
+  <div class="body">
+
+    <!-- 1. Overview -->
+    <h2 class="section" id="s1">1. Database Overview</h2>
+    <p>CCRTS uses <strong>SQLite</strong> as its database engine, accessed via the Node.js built-in <code>node:sqlite</code> module using the synchronous <code>DatabaseSync</code> API. The database is a single file (<code>backend/database/ccrts.db</code>) that requires no external DB server to run.</p>
+
+    <div class="summary-grid">
+      <div class="summary-card"><div class="num">10</div><div class="lbl">Tables</div></div>
+      <div class="summary-card"><div class="num">55+</div><div class="lbl">Columns (total)</div></div>
+      <div class="summary-card"><div class="num">17</div><div class="lbl">CHECK / FK Constraints</div></div>
+    </div>
+
+    <div class="callout">The database is fully initialized on server startup via <code>backend/config/db.js</code> using <code>CREATE TABLE IF NOT EXISTS</code> statements, making deployment straightforward — no migration runner needed for fresh installs.</div>
+
+    <!-- 2. ER Summary -->
+    <h2 class="section" id="s2">2. Entity Relationship Summary</h2>
+
+    <table>
+      <thead><tr><th>Parent Entity</th><th>Cardinality</th><th>Child Entity</th><th>FK Column (in child)</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">roles</span></td><td style="text-align:center;">1 : M</td><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">users</span></td><td><code>users.role_id</code></td><td>One role is held by many users</td></tr>
+        <tr><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">users</span></td><td style="text-align:center;">1 : M</td><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">complaints</span></td><td><code>complaints.customer_id</code></td><td>One customer files many complaints</td></tr>
+        <tr><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">users</span></td><td style="text-align:center;">1 : M</td><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">complaints</span></td><td><code>complaints.assigned_to</code></td><td>One agent is assigned many complaints</td></tr>
+        <tr><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">categories</span></td><td style="text-align:center;">1 : M</td><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">complaints</span></td><td><code>complaints.category_id</code></td><td>One category covers many complaints</td></tr>
+        <tr><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">complaints</span></td><td style="text-align:center;">1 : M</td><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">complaint_history</span></td><td><code>complaint_history.complaint_id</code></td><td>One complaint has many history entries</td></tr>
+        <tr><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">users</span></td><td style="text-align:center;">1 : M</td><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">complaint_history</span></td><td><code>complaint_history.changed_by</code></td><td>One user makes many status changes</td></tr>
+        <tr><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">complaints</span></td><td style="text-align:center;">1 : M</td><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">attachments</span></td><td><code>attachments.complaint_id</code></td><td>One complaint has many attachments</td></tr>
+        <tr><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">users</span></td><td style="text-align:center;">1 : M</td><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">attachments</span></td><td><code>attachments.uploaded_by</code></td><td>One user uploads many attachments</td></tr>
+        <tr><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">complaints</span></td><td style="text-align:center;">1 : 1</td><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">feedback</span></td><td><code>feedback.complaint_id</code> (UNIQUE)</td><td>One complaint has at most one feedback</td></tr>
+        <tr><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">users</span></td><td style="text-align:center;">1 : M</td><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">feedback</span></td><td><code>feedback.customer_id</code></td><td>One customer submits feedback for many complaints</td></tr>
+        <tr><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">users</span></td><td style="text-align:center;">1 : M</td><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">notifications</span></td><td><code>notifications.user_id</code></td><td>One user receives many notifications</td></tr>
+        <tr><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">complaints</span></td><td style="text-align:center;">1 : M</td><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">notifications</span></td><td><code>notifications.complaint_id</code></td><td>One complaint triggers many notifications</td></tr>
+        <tr><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">users</span></td><td style="text-align:center;">M : M</td><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">categories</span></td><td><code>agent_categories (agent_id, category_id)</code></td><td>Agents are mapped to many categories; categories have many agents — junction table</td></tr>
+        <tr><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">complaints</span></td><td style="text-align:center;">1 : M</td><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">cross_category_assignments</span></td><td><code>cross_category_assignments.complaint_id</code></td><td>One complaint can have many override assignments over time</td></tr>
+        <tr><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">users</span></td><td style="text-align:center;">1 : M</td><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">cross_category_assignments</span></td><td><code>cross_category_assignments.agent_id</code></td><td>One agent can be cross-assigned to many complaints</td></tr>
+        <tr><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">users</span></td><td style="text-align:center;">1 : M</td><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">cross_category_assignments</span></td><td><code>cross_category_assignments.assigned_by</code></td><td>One admin/supervisor authorises many overrides</td></tr>
+        <tr><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">categories</span></td><td style="text-align:center;">1 : M</td><td><span class="er-entity" style="font-size:12px;padding:4px 10px;">cross_category_assignments</span></td><td><code>cross_category_assignments.category_id</code></td><td>Tracks which category was bypassed in each override</td></tr>
+      </tbody>
+    </table>
+
+    <table>
+      <thead><tr><th>Key</th><th style="width:60px;">Symbol</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>Primary Key</td><td><span class="badge pk">PK</span></td><td>Unique row identifier, auto-incremented integer</td></tr>
+        <tr><td>Foreign Key</td><td><span class="badge fk">FK</span></td><td>References another table's primary key</td></tr>
+        <tr><td>Not Null</td><td><span class="badge nn">NN</span></td><td>Field cannot be empty</td></tr>
+        <tr><td>Unique</td><td><span class="badge uq">UQ</span></td><td>Value must be unique across all rows</td></tr>
+        <tr><td>Default</td><td><span class="badge def">DEF</span></td><td>Auto-populated value if not provided</td></tr>
+        <tr><td>Check Constraint</td><td><span class="badge chk">CHK</span></td><td>Value must match an allowed list</td></tr>
+      </tbody>
+    </table>
+
+    <!-- 3. roles -->
+    <h2 class="section" id="s3">3. Table: roles</h2>
+    <p>Lookup table for the five fixed system roles. Users reference this table via a foreign key, normalising role storage out of the users table.</p>
+
+    <div class="table-card">
+      <div class="table-header"><h3>roles</h3><span>2 columns</span></div>
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><strong>id</strong></td><td>INTEGER</td><td><span class="badge pk">PK</span> <span class="badge def">AUTOINCREMENT</span></td><td>Role identifier</td></tr>
+          <tr><td>role_name</td><td>TEXT</td><td><span class="badge nn">NOT NULL</span> <span class="badge uq">UNIQUE</span></td><td>admin | agent | supervisor | customer | quality</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sql-block">
+      <span class="kw">CREATE TABLE IF NOT EXISTS</span> roles (<br>
+      &nbsp;&nbsp;id &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">INTEGER PRIMARY KEY AUTOINCREMENT</span>,<br>
+      &nbsp;&nbsp;role_name <span class="kw">TEXT UNIQUE NOT NULL</span><br>
+      );<br><br>
+      <span class="cm">-- Seeded at DB init (INSERT OR IGNORE):</span><br>
+      <span class="cm">-- 'admin', 'agent', 'supervisor', 'customer', 'quality'</span>
+    </div>
+
+    <!-- 3b. categories -->
+    <h2 class="section" id="s3b">4. Table: categories</h2>
+    <p>Lookup table for the seven PDF-defined complaint categories. Stored in the database so categories can be managed without frontend deployments.</p>
+
+    <div class="table-card">
+      <div class="table-header"><h3>categories</h3><span>2 columns</span></div>
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><strong>id</strong></td><td>INTEGER</td><td><span class="badge pk">PK</span> <span class="badge def">AUTOINCREMENT</span></td><td>Category identifier</td></tr>
+          <tr><td>category_name</td><td>TEXT</td><td><span class="badge nn">NOT NULL</span> <span class="badge uq">UNIQUE</span></td><td>Billing Issues | Service Disruption | Product Defects | Technical Problems | Delivery Delays | Account Issues | Customer Service Complaints</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 5. users -->
+    <h2 class="section" id="s4">5. Table: users</h2>
+    <p>Stores all system users. Role is normalised to a foreign key referencing the roles table instead of a TEXT column with a CHECK constraint.</p>
+
+    <div class="table-card">
+      <div class="table-header"><h3>users</h3><span>6 columns</span></div>
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><strong>id</strong></td><td>INTEGER</td><td><span class="badge pk">PK</span> <span class="badge def">AUTOINCREMENT</span></td><td>Unique user identifier</td></tr>
+          <tr><td>name</td><td>TEXT</td><td><span class="badge nn">NOT NULL</span></td><td>Full name of the user</td></tr>
+          <tr><td>email</td><td>TEXT</td><td><span class="badge nn">NOT NULL</span> <span class="badge uq">UNIQUE</span></td><td>Login email, must be unique</td></tr>
+          <tr><td>phone</td><td>TEXT</td><td>—</td><td>Optional contact number</td></tr>
+          <tr><td>password</td><td>TEXT</td><td><span class="badge nn">NOT NULL</span></td><td>bcrypt hashed password</td></tr>
+          <tr><td>role_id</td><td>INTEGER</td><td><span class="badge nn">NOT NULL</span> <span class="badge fk">FK → roles.id</span></td><td>Role of the user</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sql-block">
+      <span class="kw">CREATE TABLE IF NOT EXISTS</span> users (<br>
+      &nbsp;&nbsp;id &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">INTEGER PRIMARY KEY AUTOINCREMENT</span>,<br>
+      &nbsp;&nbsp;name &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">TEXT NOT NULL</span>,<br>
+      &nbsp;&nbsp;email &nbsp;&nbsp;&nbsp;<span class="kw">TEXT UNIQUE NOT NULL</span>,<br>
+      &nbsp;&nbsp;phone &nbsp;&nbsp;&nbsp;<span class="kw">TEXT</span>,<br>
+      &nbsp;&nbsp;password <span class="kw">TEXT NOT NULL</span>,<br>
+      &nbsp;&nbsp;role_id &nbsp;<span class="kw">INTEGER NOT NULL REFERENCES</span> roles(id)<br>
+      );
+    </div>
+
+    <!-- 6. complaints -->
+    <h2 class="section" id="s5">6. Table: complaints</h2>
+    <p>The core table. Customer identity, category, and assigned agent are all stored as foreign keys — no denormalised text copies. SLA deadline is computed and stored when admin/supervisor sets the priority (not at complaint creation).</p>
+
+    <div class="table-card">
+      <div class="table-header"><h3>complaints</h3><span>11 columns</span></div>
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><strong>id</strong></td><td>INTEGER</td><td><span class="badge pk">PK</span> <span class="badge def">AUTOINCREMENT</span></td><td>Internal row ID</td></tr>
+          <tr><td>complaint_id</td><td>TEXT</td><td><span class="badge uq">UNIQUE</span></td><td>Human-readable ID: CMP-001, CMP-002...</td></tr>
+          <tr><td>customer_id</td><td>INTEGER</td><td><span class="badge fk">FK → users.id</span></td><td>The customer who filed the complaint</td></tr>
+          <tr><td>category_id</td><td>INTEGER</td><td><span class="badge fk">FK → categories.id</span></td><td>Complaint category</td></tr>
+          <tr><td>priority</td><td>TEXT</td><td><span class="badge chk">CHK</span></td><td>Low | Medium | High | Critical — set by admin/supervisor after review</td></tr>
+          <tr><td>assigned_to</td><td>INTEGER</td><td><span class="badge fk">FK → users.id</span></td><td>Agent assigned to handle this complaint</td></tr>
+          <tr><td>description</td><td>TEXT</td><td>—</td><td>Full complaint description</td></tr>
+          <tr><td>status</td><td>TEXT</td><td><span class="badge def">DEF: Open</span> <span class="badge chk">CHK</span></td><td>Open | Assigned | In Progress | Pending Customer Response | Escalated | Resolved | Closed</td></tr>
+          <tr><td>sla_deadline</td><td>DATETIME</td><td>—</td><td>Computed when priority is set: priority_set_at + SLA hours. NULL until priority is assigned.</td></tr>
+          <tr><td>resolved_at</td><td>DATETIME</td><td>—</td><td>Timestamp set when status changes to Resolved</td></tr>
+          <tr><td>created_at</td><td>DATETIME</td><td><span class="badge def">DEF: CURRENT_TIMESTAMP</span></td><td>Complaint submission timestamp</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 7. complaint_history -->
+    <h2 class="section" id="s6">7. Table: complaint_history</h2>
+    <p>Immutable audit trail. Every status change on a complaint creates one row here. This powers the history timeline shown in the Complaint Detail page.</p>
+
+    <div class="table-card">
+      <div class="table-header"><h3>complaint_history</h3><span>7 columns</span></div>
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><strong>id</strong></td><td>INTEGER</td><td><span class="badge pk">PK</span> <span class="badge def">AUTOINCREMENT</span></td><td>Row identifier</td></tr>
+          <tr><td>complaint_id</td><td>TEXT</td><td><span class="badge nn">NOT NULL</span></td><td>References complaints.complaint_id</td></tr>
+          <tr><td>changed_by</td><td>INTEGER</td><td><span class="badge fk">FK → users.id</span></td><td>User who made the change (NULL for system)</td></tr>
+          <tr><td>old_status</td><td>TEXT</td><td>—</td><td>Previous status (NULL for first entry)</td></tr>
+          <tr><td>new_status</td><td>TEXT</td><td><span class="badge nn">NOT NULL</span></td><td>New status after the change</td></tr>
+          <tr><td>note</td><td>TEXT</td><td>—</td><td>Agent's resolution note or system message</td></tr>
+          <tr><td>changed_at</td><td>DATETIME</td><td><span class="badge def">DEF: CURRENT_TIMESTAMP</span></td><td>When the change was made</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 8. attachments -->
+    <h2 class="section" id="s7">8. Table: attachments</h2>
+    <p>Stores file upload metadata. The actual file is saved to <code>backend/uploads/</code> on disk. The <code>file_path</code> is the filename on disk; the download URL is constructed as <code>http://localhost:3001/uploads/{file_path}</code>.</p>
+
+    <div class="table-card">
+      <div class="table-header"><h3>attachments</h3><span>6 columns</span></div>
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><strong>id</strong></td><td>INTEGER</td><td><span class="badge pk">PK</span> <span class="badge def">AUTOINCREMENT</span></td><td>Row identifier</td></tr>
+          <tr><td>complaint_id</td><td>TEXT</td><td><span class="badge nn">NOT NULL</span></td><td>References complaints.complaint_id</td></tr>
+          <tr><td>file_name</td><td>TEXT</td><td><span class="badge nn">NOT NULL</span></td><td>Original filename as uploaded by user</td></tr>
+          <tr><td>file_path</td><td>TEXT</td><td><span class="badge nn">NOT NULL</span></td><td>Server filename (unique, timestamped)</td></tr>
+          <tr><td>uploaded_by</td><td>INTEGER</td><td><span class="badge fk">FK → users.id</span></td><td>Who uploaded the file</td></tr>
+          <tr><td>uploaded_at</td><td>DATETIME</td><td><span class="badge def">DEF: CURRENT_TIMESTAMP</span></td><td>Upload timestamp</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 9. feedback -->
+    <h2 class="section" id="s8">9. Table: feedback</h2>
+    <p>Customer satisfaction feedback. One row per complaint (enforced at application level). Only customers can submit; only for Resolved or Closed complaints.</p>
+
+    <div class="table-card">
+      <div class="table-header"><h3>feedback</h3><span>6 columns</span></div>
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><strong>id</strong></td><td>INTEGER</td><td><span class="badge pk">PK</span> <span class="badge def">AUTOINCREMENT</span></td><td>Row identifier</td></tr>
+          <tr><td>complaint_id</td><td>TEXT</td><td><span class="badge nn">NOT NULL</span></td><td>References complaints.complaint_id</td></tr>
+          <tr><td>customer_id</td><td>INTEGER</td><td><span class="badge fk">FK → users.id</span></td><td>The customer who submitted feedback</td></tr>
+          <tr><td>rating</td><td>INTEGER</td><td><span class="badge chk">CHK 1–5</span></td><td>Star rating between 1 and 5</td></tr>
+          <tr><td>comments</td><td>TEXT</td><td>—</td><td>Optional text comment</td></tr>
+          <tr><td>submitted_at</td><td>DATETIME</td><td><span class="badge def">DEF: CURRENT_TIMESTAMP</span></td><td>Feedback submission timestamp</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 10. notifications -->
+    <h2 class="section" id="s9">10. Table: notifications</h2>
+    <p>In-app notification store. Each notification targets one user. The <code>complaint_id</code> is optional — clicking a complaint-linked notification navigates to that complaint's detail page.</p>
+
+    <div class="table-card">
+      <div class="table-header"><h3>notifications</h3><span>6 columns</span></div>
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><strong>id</strong></td><td>INTEGER</td><td><span class="badge pk">PK</span> <span class="badge def">AUTOINCREMENT</span></td><td>Row identifier</td></tr>
+          <tr><td>user_id</td><td>INTEGER</td><td><span class="badge nn">NOT NULL</span> <span class="badge fk">FK → users.id</span></td><td>Target user receiving the notification</td></tr>
+          <tr><td>complaint_id</td><td>TEXT</td><td>—</td><td>Optional link to complaint (NULL for system notifications)</td></tr>
+          <tr><td>message</td><td>TEXT</td><td><span class="badge nn">NOT NULL</span></td><td>Notification text displayed to user</td></tr>
+          <tr><td>is_read</td><td>INTEGER</td><td><span class="badge def">DEF: 0</span></td><td>0 = unread, 1 = read</td></tr>
+          <tr><td>created_at</td><td>DATETIME</td><td><span class="badge def">DEF: CURRENT_TIMESTAMP</span></td><td>When notification was created</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 11. agent_categories -->
+    <h2 class="section" id="s9b">11. Table: agent_categories</h2>
+    <p>Junction table implementing the many-to-many relationship between agents and complaint categories. An agent can be mapped to multiple categories; a category can have multiple agents. The business rule that every category must have at least one agent is enforced at the application layer — the API blocks removal of the last agent from any category.</p>
+
+    <div class="table-card">
+      <div class="table-header"><h3>agent_categories</h3><span>2 columns — composite PK</span></div>
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>agent_id</td><td>INTEGER</td><td><span class="badge nn">NOT NULL</span> <span class="badge fk">FK → users.id</span> <span class="badge pk">PK (composite)</span></td><td>The agent being mapped</td></tr>
+          <tr><td>category_id</td><td>INTEGER</td><td><span class="badge nn">NOT NULL</span> <span class="badge fk">FK → categories.id</span> <span class="badge pk">PK (composite)</span></td><td>The category the agent is mapped to</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sql-block">
+      <span class="kw">CREATE TABLE IF NOT EXISTS</span> agent_categories (<br>
+      &nbsp;&nbsp;agent_id &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">INTEGER NOT NULL REFERENCES</span> users(id),<br>
+      &nbsp;&nbsp;category_id <span class="kw">INTEGER NOT NULL REFERENCES</span> categories(id),<br>
+      &nbsp;&nbsp;<span class="kw">PRIMARY KEY</span> (agent_id, category_id)<br>
+      );<br><br>
+      <span class="cm">-- Business rule enforced in application layer:</span><br>
+      <span class="cm">-- DELETE blocked if COUNT(category_id) = 1 for that category</span>
+    </div>
+
+    <!-- 12. cross_category_assignments -->
+    <h2 class="section" id="s9c">12. Table: cross_category_assignments</h2>
+    <p>Permanent audit log for every cross-category assignment override. Written only when admin or supervisor assigns an agent to a complaint outside the agent's mapped categories. The <code>note</code> column is NOT NULL at the database level — an override without a reason cannot be inserted. The separate table avoids a sparse boolean column in <code>complaint_history</code> and enables direct cross-assignment reporting without text parsing.</p>
+
+    <div class="table-card">
+      <div class="table-header"><h3>cross_category_assignments</h3><span>7 columns</span></div>
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><strong>id</strong></td><td>INTEGER</td><td><span class="badge pk">PK</span> <span class="badge def">AUTOINCREMENT</span></td><td>Row identifier</td></tr>
+          <tr><td>complaint_id</td><td>TEXT</td><td><span class="badge nn">NOT NULL</span> <span class="badge fk">FK → complaints.complaint_id</span></td><td>The complaint that received the override assignment</td></tr>
+          <tr><td>agent_id</td><td>INTEGER</td><td><span class="badge nn">NOT NULL</span> <span class="badge fk">FK → users.id</span></td><td>The agent assigned outside their mapped category</td></tr>
+          <tr><td>category_id</td><td>INTEGER</td><td><span class="badge nn">NOT NULL</span> <span class="badge fk">FK → categories.id</span></td><td>The complaint's category that was bypassed</td></tr>
+          <tr><td>assigned_by</td><td>INTEGER</td><td><span class="badge nn">NOT NULL</span> <span class="badge fk">FK → users.id</span></td><td>Admin or supervisor who performed the override</td></tr>
+          <tr><td>note</td><td>TEXT</td><td><span class="badge nn">NOT NULL</span></td><td>Mandatory reason for the override — DB-level enforcement</td></tr>
+          <tr><td>assigned_at</td><td>DATETIME</td><td><span class="badge def">DEF: CURRENT_TIMESTAMP</span></td><td>When the override was made</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sql-block">
+      <span class="kw">CREATE TABLE IF NOT EXISTS</span> cross_category_assignments (<br>
+      &nbsp;&nbsp;id &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">INTEGER PRIMARY KEY AUTOINCREMENT</span>,<br>
+      &nbsp;&nbsp;complaint_id <span class="kw">TEXT NOT NULL REFERENCES</span> complaints(complaint_id),<br>
+      &nbsp;&nbsp;agent_id &nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">INTEGER NOT NULL REFERENCES</span> users(id),<br>
+      &nbsp;&nbsp;category_id &nbsp;<span class="kw">INTEGER NOT NULL REFERENCES</span> categories(id),<br>
+      &nbsp;&nbsp;assigned_by &nbsp;<span class="kw">INTEGER NOT NULL REFERENCES</span> users(id),<br>
+      &nbsp;&nbsp;note &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">TEXT NOT NULL</span>,<br>
+      &nbsp;&nbsp;assigned_at &nbsp;<span class="kw">DATETIME DEFAULT CURRENT_TIMESTAMP</span><br>
+      );
+    </div>
+
+    <!-- 13. SLA Rules -->
+    <h2 class="section" id="s10">13. SLA Rules Reference</h2>
+    <p>SLA deadlines are not stored in a separate table — they are computed when admin/supervisor sets the priority and stored in <code>complaints.sla_deadline</code>. The column is NULL until priority is assigned. This approach prevents the SLA clock from starting before someone has actually reviewed the complaint.</p>
+
+    <table>
+      <thead><tr><th>Priority</th><th>SLA Hours</th><th>Formula</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr><td>Critical</td><td>4 hours</td><td>created_at + 4h</td><td>Filed at 10:00 AM → deadline 2:00 PM</td></tr>
+        <tr><td>High</td><td>24 hours</td><td>created_at + 24h</td><td>Filed Monday 10 AM → deadline Tuesday 10 AM</td></tr>
+        <tr><td>Medium</td><td>48 hours</td><td>created_at + 48h</td><td>Filed Monday → deadline Wednesday</td></tr>
+        <tr><td>Low</td><td>72 hours</td><td>created_at + 72h</td><td>Filed Monday → deadline Thursday</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">The SLA background job (runs every 5 minutes) queries:<br><br>
+    <code>SELECT * FROM complaints WHERE sla_deadline &lt; datetime('now') AND status NOT IN ('Resolved','Closed','Escalated')</code><br><br>
+    Any matching complaints are automatically updated to 'Escalated' and notifications are sent to all supervisors and admins.</div>
+
+    <!-- 12. Migration Strategy -->
+    <h2 class="section" id="s11">14. Migration Strategy</h2>
+    <p>All tables use <code>CREATE TABLE IF NOT EXISTS</code> — safe to run on both fresh and existing databases. The database file is created automatically on first server start; no external migration runner is required.</p>
+    <p>For schema changes on an existing database (e.g., adding a column), SQLite's <code>ALTER TABLE … ADD COLUMN</code> is used, wrapped in try/catch so re-running on an already-migrated database silently ignores the error.</p>
+
+    <!-- 13. Design Decisions -->
+    <h2 class="section" id="s12">15. Design Decisions</h2>
+    <table>
+      <thead><tr><th>Decision</th><th>Rationale</th></tr></thead>
+      <tbody>
+        <tr><td>SQLite instead of MySQL/PostgreSQL</td><td>Zero-config embedded DB suitable for Phase 1. No DB server needed. Easy to set up for demo and evaluation. Can be migrated to PostgreSQL in Phase 2 with minimal code change.</td></tr>
+        <tr><td>node:sqlite DatabaseSync (built-in)</td><td>No additional npm dependency. Synchronous API simplifies controller code — no async/await complexity for DB calls.</td></tr>
+        <tr><td>Separate roles table (FK from users)</td><td>Normalised design. Adding or renaming a role requires one row change, not a CHECK constraint migration. Also avoids the sparse-column problem if role-specific fields are ever needed.</td></tr>
+        <tr><td>Separate categories table (FK from complaints)</td><td>Categories can be added or renamed by admin without a frontend deployment. Enforces referential integrity — a complaint cannot reference a non-existent category.</td></tr>
+        <tr><td>complaint_id as TEXT (CMP-001 format)</td><td>Human-readable IDs are more useful in a support context than auto-incremented integers for referencing in communication.</td></tr>
+        <tr><td>assigned_to as INTEGER FK to users.id</td><td>Proper referential integrity — the system cannot assign a complaint to a user who doesn't exist. Joined at query time to get agent name.</td></tr>
+        <tr><td>SLA deadline stored when priority is set (not at creation)</td><td>Priority is not known at submission — it is assessed by admin/supervisor after reviewing the complaint. Starting the SLA clock at submission without a priority would be meaningless.</td></tr>
+        <tr><td>Closing rules based on feedback rating</td><td>Closing rights depend on whether the customer was satisfied. A dissatisfied customer (rating 1–2) requires management review before closure; a satisfied one (3–5) allows agent to close. No feedback within 7 days triggers admin/supervisor force-close.</td></tr>
+        <tr><td>Notifications as DB table (not WebSocket)</td><td>Simpler to implement. 30s polling is acceptable for this use case. Phase 2 can add WebSocket real-time push.</td></tr>
+        <tr><td>CHECK constraints on status and priority</td><td>Data integrity enforced at the DB layer, not just application layer. Prevents invalid data even if API is bypassed.</td></tr>
+        <tr><td>agent_categories as junction table (not a text column on users)</td><td>Normalised many-to-many design. An agent can cover multiple categories; a category can have multiple agents. A text column on users could not express this. The junction table also enables direct queries — finding all agents for a category or all categories for an agent is a single indexed lookup.</td></tr>
+        <tr><td>cross_category_assignments as separate table (not a boolean on complaint_history)</td><td>A boolean <code>is_cross_category</code> column on complaint_history would be sparse — almost all rows would be 0. A separate table stores only meaningful data, enables direct COUNT queries without text parsing, and captures full detail (bypassed category, assigner, reason) that would be awkward to fit into the existing history schema. The <code>note NOT NULL</code> DB constraint guarantees no override can ever be recorded without a reason, even if application validation is bypassed.</td></tr>
+      </tbody>
+    </table>
+
+  </div>
+  <div class="footer">CCRTS &nbsp;|&nbsp; Database Design Document &nbsp;|&nbsp; Version 1.0 &nbsp;|&nbsp; Phase 1 &nbsp;|&nbsp; To save as PDF: Ctrl+P → Save as PDF</div>
+</div>
+</body>
+</html>

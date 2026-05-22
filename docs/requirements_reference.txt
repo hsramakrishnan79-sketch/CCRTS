@@ -1,0 +1,131 @@
+CCRTS Requirements Reference — extracted from PDF
+Phase 1 - Customer Complaint & Resolution Tracking System
+===========================================================
+Use this file instead of re-uploading the PDF.
+
+────────────────────────────────────────────────────────────
+5. TARGET USERS
+────────────────────────────────────────────────────────────
+Customer          Register and track complaints
+Support Agent     Handle and resolve complaints
+Supervisor        Monitor escalations and SLA
+Administrator     Manage users and system configuration
+Quality Team      Analyze complaint trends and service quality
+
+────────────────────────────────────────────────────────────
+6.1 USER AUTHENTICATION AND AUTHORIZATION MODULE
+────────────────────────────────────────────────────────────
+Features: User registration, Secure login/logout, Forgot password,
+          Session management, Role-based access control
+
+Admin:          Full system access, Manage users and permissions,
+                Configure complaint categories, Access analytics
+Support Agent:  View assigned complaints, Update complaint status,
+                Add resolution details, Communicate with customers
+Supervisor:     Monitor complaint queues, Handle escalations,
+                Review SLA breaches, Generate reports
+Customer:       Register complaints, View complaint status,
+                Upload documents, Provide feedback
+
+────────────────────────────────────────────────────────────
+6.2 COMPLAINT REGISTRATION MODULE
+────────────────────────────────────────────────────────────
+Features: Register new complaint, Auto-generate complaint number,
+          Select complaint category, Add complaint description,
+          Upload attachments
+
+Complaint Information Fields:
+  Complaint ID      Unique complaint identifier
+  Customer Name     Name of customer
+  Contact Details   Email/phone
+  Complaint Category Type of complaint
+  Priority          Low/Medium/High/Critical        ← listed as registration field
+  Description       Complaint details
+  Created Date      Complaint creation timestamp
+  Status            Current complaint status
+
+Complaint Categories:
+  - Billing Issues
+  - Service Disruption
+  - Product Defects
+  - Technical Problems
+  - Delivery Delays
+  - Account Issues
+  - Customer Service Complaints
+
+────────────────────────────────────────────────────────────
+6.3 COMPLAINT WORKFLOW MANAGEMENT MODULE
+────────────────────────────────────────────────────────────
+Complaint Statuses:
+  Open, Assigned, In Progress, Pending Customer Response,
+  Escalated, Resolved, Closed
+
+Workflow Process:
+  Step 1  Customer submits complaint
+  Step 2  System generates complaint ID
+  Step 3  Complaint assigned to support agent
+  Step 4  Agent investigates issue
+  Step 5  Complaint resolved or escalated
+  Step 6  Customer confirms resolution
+  Step 7  Complaint closed                          ← no actor specified
+
+────────────────────────────────────────────────────────────
+6.4 SLA AND ESCALATION MANAGEMENT MODULE
+────────────────────────────────────────────────────────────
+Features: SLA tracking, Escalation rules, Auto-escalation,
+          SLA breach notifications, Escalation history
+
+Example SLA Rules:
+  Low      72 Hours
+  Medium   48 Hours
+  High     24 Hours
+  Critical  4 Hours
+
+────────────────────────────────────────────────────────────
+6.5 COMPLAINT RESOLUTION MODULE
+────────────────────────────────────────────────────────────
+Features: Add resolution comments, Upload resolution documents,
+          Mark complaint as resolved, Request customer confirmation,
+          Reopen complaints if required
+
+────────────────────────────────────────────────────────────
+6.6 NOTIFICATION MANAGEMENT MODULE
+────────────────────────────────────────────────────────────
+Notifications: Complaint creation confirmation, Assignment notification,
+               Status update notification, Resolution notification,
+               Escalation alerts
+Channels: Email notifications, In-app notifications
+
+────────────────────────────────────────────────────────────
+6.7 DASHBOARD AND ANALYTICS MODULE
+────────────────────────────────────────────────────────────
+Metrics: Total complaints, Open complaints, Resolved complaints,
+         Escalated complaints, SLA breaches, Average resolution time
+Reports: Complaint category analysis, Agent performance reports,
+         Customer satisfaction reports, Monthly complaint trends
+
+────────────────────────────────────────────────────────────
+6.8 FEEDBACK MANAGEMENT MODULE
+────────────────────────────────────────────────────────────
+Features: Customer feedback collection, Resolution satisfaction rating,
+          Complaint closure feedback, Service quality monitoring
+
+────────────────────────────────────────────────────────────
+9. DATABASE DESIGN (HIGH-LEVEL ENTITIES)
+────────────────────────────────────────────────────────────
+Users:            UserID, Name, Email, Password, RoleID
+Roles:            RoleID, RoleName
+Complaints:       ComplaintID, CustomerID, CategoryID, Description,
+                  Priority, Status, CreatedDate
+ComplaintHistory: HistoryID, ComplaintID, UpdatedBy, OldStatus,
+                  NewStatus, UpdatedDate
+Categories:       CategoryID, CategoryName
+Attachments:      AttachmentID, ComplaintID, FileName
+Feedback:         FeedbackID, ComplaintID, Rating, Comments
+
+────────────────────────────────────────────────────────────
+11. USER INTERFACE SCREENS
+────────────────────────────────────────────────────────────
+Login Page, Registration Page, Dashboard, Complaint Registration,
+Complaint Tracking, Agent Work Queue, Escalation Dashboard,
+Reports Dashboard, User Management

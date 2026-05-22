@@ -22,6 +22,10 @@ const submitFeedback = (req, res) => {
       return res.status(400).json({ message: "Feedback can only be submitted for Resolved or Closed complaints" });
     }
 
+    if (complaint.customer_id !== req.user.id) {
+      return res.status(403).json({ message: "You can only submit feedback for your own complaints" });
+    }
+
     const existing = db
       .prepare("SELECT id FROM feedback WHERE complaint_id = ?")
       .get(complaint_id);

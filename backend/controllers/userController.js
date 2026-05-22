@@ -3,12 +3,31 @@ const db = require("../config/db");
 
 const VALID_ROLES = ["admin", "agent", "supervisor", "customer", "quality"];
 
+// GET /api/users/agents — agent list for assignment dropdowns
+const getAgents = (req, res) => {
+  try {
+    const agents = db.prepare(`
+      SELECT u.id, u.name, u.email
+      FROM users u
+      JOIN roles r ON r.id = u.role_id
+      WHERE r.role_name = 'agent'
+      ORDER BY u.name ASC
+    `).all();
+    res.status(200).json(agents);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
 // GET /api/users/all
 const getAllUsers = (req, res) => {
   try {
-    const users = db
-      .prepare("SELECT id, name, email, role FROM users ORDER BY id ASC")
-      .all();
+    const users = db.prepare(`
+      SELECT u.id, u.name, u.email, u.phone, r.role_name AS role
+      FROM users u JOIN roles r ON r.id = u.role_id
+      ORDER BY u.id ASC
+    `).all();
     res.status(200).json(users);
   } catch (error) {
     console.error(error);
@@ -16,10 +35,10 @@ const getAllUsers = (req, res) => {
   }
 };
 
-// POST /api/users  — admin creates a user
+// POST /api/users — admin creates a user
 const createUser = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, phone } = req.body;
 
     if (!name || !email || !password || !role) {
       return res.status(400).json({ message: "name, email, password and role are required" });
@@ -34,9 +53,10 @@ const createUser = async (req, res) => {
       return res.status(409).json({ message: "A user with that email already exists" });
     }
 
+    const roleRow = db.prepare("SELECT id FROM roles WHERE role_name = ?").get(role);
     const hashed = await bcrypt.hash(password, 10);
-    db.prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)")
-      .run(name, email, hashed, role);
+    db.prepare("INSERT INTO users (name, email, phone, password, role_id) VALUES (?, ?, ?, ?, ?)")
+      .run(name, email, phone ?? null, hashed, roleRow.id);
 
     res.status(201).json({ message: "User created successfully" });
   } catch (error) {
@@ -62,7 +82,8 @@ const updateUserRole = (req, res) => {
     const user = db.prepare("SELECT id FROM users WHERE id = ?").get(id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    db.prepare("UPDATE users SET role = ? WHERE id = ?").run(role, id);
+    const roleRow = db.prepare("SELECT id FROM roles WHERE role_name = ?").get(role);
+    db.prepare("UPDATE users SET role_id = ? WHERE id = ?").run(roleRow.id, id);
     res.status(200).json({ message: "Role updated successfully" });
   } catch (error) {
     console.error(error);
@@ -90,4 +111,4 @@ const deleteUser = (req, res) => {
   }
 };
 
-module.exports = { getAllUsers, createUser, updateUserRole, deleteUser };
+module.exports = { getAgents, getAllUsers, createUser, updateUserRole, deleteUser };

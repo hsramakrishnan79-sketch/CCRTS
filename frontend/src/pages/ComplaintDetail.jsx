@@ -54,6 +54,9 @@ export default function ComplaintDetail() {
   const [fbComments, setFbComments] = useState("");
   const [submittingFb, setSubmittingFb] = useState(false);
 
+  const [reopenNote, setReopenNote] = useState("");
+  const [reopening, setReopening] = useState(false);
+
   const fetchAll = async () => {
     try {
       const [cRes, aRes, fRes] = await Promise.all([
@@ -115,12 +118,38 @@ export default function ComplaintDetail() {
     return <Layout><div style={{ padding: "40px" }}>Complaint not found.</div></Layout>;
   }
 
+  const user = JSON.parse(localStorage.getItem("user"));
+
   const slaBreached =
     complaint.sla_deadline &&
     !["Resolved", "Closed"].includes(complaint.status) &&
     new Date(complaint.sla_deadline) < new Date();
 
   const canFeedback = ["Resolved", "Closed"].includes(complaint.status);
+
+  const canReopen =
+    complaint.status === "Closed" &&
+    ["admin", "supervisor"].includes(user?.role);
+
+  const handleReopen = async () => {
+    if (!reopenNote.trim()) {
+      alert("Please provide a reason for reopening");
+      return;
+    }
+    setReopening(true);
+    try {
+      await API.put(`/complaints/update-status/${complaint_id}`, {
+        status: "Assigned",
+        note: reopenNote,
+      });
+      setReopenNote("");
+      fetchAll();
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to reopen complaint");
+    } finally {
+      setReopening(false);
+    }
+  };
 
   return (
     <Layout>
@@ -337,6 +366,40 @@ export default function ComplaintDetail() {
             </div>
           )}
         </div>
+
+        {/* ── Reopen ───────────────────────────────────────────────── */}
+        {canReopen && (
+          <div style={{ ...cardStyle, marginTop: "24px", borderLeft: "4px solid #fd7e14" }}>
+            <h3 style={{ ...cardTitle, color: "#fd7e14" }}>Reopen Complaint</h3>
+            <p style={{ fontSize: "14px", color: "#555", marginBottom: "14px" }}>
+              Reopening this complaint will return it to <strong>Assigned</strong> status.
+              The assigned agent will be notified and the other management role will be informed.
+              A mandatory reason is required.
+            </p>
+            <textarea
+              placeholder="Reason for reopening (required)"
+              value={reopenNote}
+              onChange={(e) => setReopenNote(e.target.value)}
+              style={{
+                width: "100%", height: "80px", padding: "10px",
+                borderRadius: "8px", border: "1px solid #fd7e14",
+                resize: "none", fontSize: "14px", boxSizing: "border-box",
+                marginBottom: "12px",
+              }}
+            />
+            <button
+              onClick={handleReopen}
+              disabled={reopening}
+              style={{
+                padding: "10px 24px", background: "#fd7e14", color: "white",
+                border: "none", borderRadius: "8px", cursor: "pointer",
+                opacity: reopening ? 0.7 : 1, fontSize: "15px",
+              }}
+            >
+              {reopening ? "Reopening..." : "Reopen Complaint"}
+            </button>
+          </div>
+        )}
 
       </div>
     </Layout>

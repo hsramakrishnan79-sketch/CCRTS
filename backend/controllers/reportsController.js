@@ -22,7 +22,6 @@ const getReports = (req, res) => {
       FROM complaints
     `).get();
 
-    // SLA compliance among resolved
     const slaCompliance = db.prepare(`
       SELECT
         COUNT(*) AS totalResolved,
@@ -36,10 +35,11 @@ const getReports = (req, res) => {
     // ── By Category ───────────────────────────────────────────────────────────
     const byCategory = db.prepare(`
       SELECT
-        COALESCE(category, 'Uncategorised') AS category,
+        COALESCE(cat.category_name, 'Uncategorised') AS category,
         COUNT(*) AS count
-      FROM complaints
-      GROUP BY category
+      FROM complaints c
+      LEFT JOIN categories cat ON cat.id = c.category_id
+      GROUP BY c.category_id
       ORDER BY count DESC
     `).all();
 
@@ -67,17 +67,18 @@ const getReports = (req, res) => {
     // ── Agent performance ─────────────────────────────────────────────────────
     const agentPerformance = db.prepare(`
       SELECT
-        assigned_to                                             AS agent,
-        COUNT(*)                                               AS total,
-        SUM(status IN ('Resolved','Closed'))                   AS resolved,
-        SUM(status = 'Escalated')                              AS escalated,
+        u.name                                               AS agent,
+        COUNT(*)                                             AS total,
+        SUM(c.status IN ('Resolved','Closed'))               AS resolved,
+        SUM(c.status = 'Escalated')                          AS escalated,
         ROUND(AVG(
-          CASE WHEN resolved_at IS NOT NULL
-          THEN (julianday(resolved_at) - julianday(created_at)) * 24 END
-        ), 1)                                                  AS avgResolutionHours
-      FROM complaints
-      WHERE assigned_to IS NOT NULL AND assigned_to != ''
-      GROUP BY assigned_to
+          CASE WHEN c.resolved_at IS NOT NULL
+          THEN (julianday(c.resolved_at) - julianday(c.created_at)) * 24 END
+        ), 1)                                                AS avgResolutionHours
+      FROM complaints c
+      JOIN users u ON u.id = c.assigned_to
+      WHERE c.assigned_to IS NOT NULL
+      GROUP BY c.assigned_to, u.name
       ORDER BY total DESC
     `).all();
 
@@ -94,6 +95,43 @@ const getReports = (req, res) => {
       FROM feedback
     `).get();
 
+    // ── Cross-category assignments ────────────────────────────────────────────
+    const crossTotal = db.prepare(
+      "SELECT COUNT(*) AS total FROM cross_category_assignments"
+    ).get().total;
+
+    const crossByCategory = db.prepare(`
+      SELECT cat.category_name AS category, COUNT(*) AS count
+      FROM cross_category_assignments cca
+      JOIN categories cat ON cat.id = cca.category_id
+      GROUP BY cca.category_id
+      ORDER BY count DESC
+    `).all();
+
+    const crossByAgent = db.prepare(`
+      SELECT u.name AS agent, COUNT(*) AS count
+      FROM cross_category_assignments cca
+      JOIN users u ON u.id = cca.agent_id
+      GROUP BY cca.agent_id
+      ORDER BY count DESC
+    `).all();
+
+    const crossRecent = db.prepare(`
+      SELECT
+        cca.assigned_at,
+        cca.complaint_id,
+        cat.category_name    AS complaint_category,
+        u_agent.name         AS agent,
+        u_by.name            AS assigned_by,
+        cca.note
+      FROM cross_category_assignments cca
+      JOIN categories cat   ON cat.id   = cca.category_id
+      JOIN users u_agent    ON u_agent.id = cca.agent_id
+      JOIN users u_by       ON u_by.id  = cca.assigned_by
+      ORDER BY cca.assigned_at DESC
+      LIMIT 20
+    `).all();
+
     res.status(200).json({
       overview: { ...overview, slaCompliance },
       byCategory,
@@ -101,6 +139,7 @@ const getReports = (req, res) => {
       byMonth,
       agentPerformance,
       satisfaction: { ...satisfactionAvg, distribution: satisfactionDist },
+      crossAssignments: { total: crossTotal, byCategory: crossByCategory, byAgent: crossByAgent, recent: crossRecent },
     });
   } catch (error) {
     console.error(error);

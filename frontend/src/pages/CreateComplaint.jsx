@@ -13,18 +13,12 @@ const CATEGORIES = [
   "Customer Service Complaints",
 ];
 
-const PRIORITIES = ["Low", "Medium", "High", "Critical"];
-
 function CreateComplaint() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    customer_name: "",
-    email: "",
-    phone: "",
     complaint_type: "",
     description: "",
-    priority: "Low",
   });
 
   const handleChange = (e) => {
@@ -35,7 +29,7 @@ function CreateComplaint() {
     try {
       const response = await API.post("/complaints/create", formData);
       alert(`${response.data.message}\nComplaint ID: ${response.data.complaint_id}`);
-      setFormData({ customer_name: "", email: "", phone: "", complaint_type: "", description: "", priority: "Low" });
+      setFormData({ complaint_type: "", description: "" });
       navigate("/view-complaints");
     } catch (error) {
       alert(error.response?.data?.message || "Failed to Create Complaint");
@@ -52,33 +46,6 @@ function CreateComplaint() {
           </div>
 
           <div style={{ padding: "30px" }}>
-            <input
-              type="text"
-              name="customer_name"
-              placeholder="Customer Name *"
-              value={formData.customer_name}
-              onChange={handleChange}
-              style={inputStyle}
-            />
-
-            <input
-              type="email"
-              name="email"
-              placeholder="Customer Email"
-              value={formData.email}
-              onChange={handleChange}
-              style={inputStyle}
-            />
-
-            <input
-              type="tel"
-              name="phone"
-              placeholder="Phone Number"
-              value={formData.phone}
-              onChange={handleChange}
-              style={inputStyle}
-            />
-
             <select
               name="complaint_type"
               value={formData.complaint_type}
@@ -99,19 +66,8 @@ function CreateComplaint() {
               style={{ ...inputStyle, height: "120px", resize: "none" }}
             />
 
-            <select
-              name="priority"
-              value={formData.priority}
-              onChange={handleChange}
-              style={{ ...inputStyle, color: PRIORITY_COLORS[formData.priority] }}
-            >
-              {PRIORITIES.map((p) => (
-                <option key={p} value={p}>{p} Priority</option>
-              ))}
-            </select>
-
-            <div style={{ background: "#f8f9fa", borderRadius: "8px", padding: "12px", marginBottom: "18px", fontSize: "13px", color: "#666" }}>
-              SLA deadline: <strong>{SLA_LABELS[formData.priority]}</strong> after submission
+            <div style={{ background: "#fff3cd", borderRadius: "8px", padding: "12px", marginBottom: "18px", fontSize: "13px", color: "#856404" }}>
+              Priority and SLA deadline will be assigned by a supervisor after review.
             </div>
 
             <button
@@ -135,20 +91,6 @@ const inputStyle = {
   borderRadius: "8px",
   fontSize: "15px",
   boxSizing: "border-box",
-};
-
-const PRIORITY_COLORS = {
-  Low: "#28a745",
-  Medium: "#ffc107",
-  High: "#fd7e14",
-  Critical: "#dc3545",
-};
-
-const SLA_LABELS = {
-  Low: "72 hours",
-  Medium: "48 hours",
-  High: "24 hours",
-  Critical: "4 hours",
 };
 
 export default CreateComplaint;

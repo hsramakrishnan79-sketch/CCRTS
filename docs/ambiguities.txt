@@ -1,0 +1,140 @@
+CCRTS Requirements - Ambiguities & Design Observations
+========================================================
+Identified during design review of the requirements PDF.
+This document serves as a Design Decision Record — capturing not just what was decided but why.
+
+1. PRIORITY SET BY CUSTOMER [RESOLVED]
+   - Problem: PDF Section 6.2 says customer selects priority (Low/Medium/High/Critical) at submission.
+     Every customer will select Critical to get faster attention, making priority meaningless.
+     Priority loses its purpose as a triage tool if the complainant controls it.
+   - Why this resolution: Priority is an operational decision, not a customer preference.
+     It should be assessed after reviewing the complaint description and context.
+     Admin/Supervisor are better positioned to judge urgency objectively.
+   - Resolution: Priority removed from complaint submission form. Admin/Supervisor set priority
+     via the All Complaints view after reviewing the complaint. SLA deadline is computed at that point.
+
+2. COMPLAINT CLOSING - WHO CAN CLOSE [RESOLVED]
+   - Problem: The workflow process lists Step 7 as "Complaint closed" but does not name an Actor.
+     No section of the PDF explicitly states which role has the right to close a complaint.
+     This is a genuine gap in the requirements — the actor for closure is undefined.
+   - Why this resolution: Closing rights should depend on customer satisfaction (feedback rating)
+     rather than a fixed role. A satisfied customer (rating 3-5) means the agent handled it well
+     and can close. A dissatisfied customer (rating 1-2) needs management review before closing.
+   - Resolution: Closing rules based on feedback rating (enforced in updateComplaintStatus):
+       * Feedback rating 3, 4, or 5  → agent, admin, or supervisor can close
+       * Feedback rating 1 or 2      → admin/supervisor only, mandatory note required
+       * No feedback, < 7 days       → blocked for all roles
+       * No feedback, >= 7 days      → force-close by admin/supervisor only, mandatory note
+
+3. STATUS TRANSITION - LINEAR FLOW IS MISLEADING [RESOLVED]
+   - Problem: The requirements show a linear flow:
+       Open → Assigned → In Progress → Pending Customer Response → Escalated → Resolved → Closed
+     In practice transitions are not linear — escalation can happen from multiple states,
+     closing has role and feedback conditions, and some transitions need mandatory evidence.
+   - Resolution — all transitions enforced in updateComplaintStatus with reasoning:
+
+       * Open → Assigned
+         Reason: Auto-triggered when admin/supervisor assigns an agent. No manual step needed.
+         A complaint without an agent has not started — keeping it Open until assigned is correct.
+
+       * Assigned → In Progress
+         Reason: Auto-triggered when the assigned agent adds a note. A note is the clearest
+         signal that the agent has consciously started working. Attachment upload is not used
+         as the trigger because customers can also upload, which would falsely advance the status.
+
+       * → Pending Customer Response
+         Reason: Agent needs more information from the customer before proceeding.
+         Mandatory note required — without it the customer has no context on what is being asked.
+
+       * → Escalated
+         Reason: Only allowed from In Progress or Pending Customer Response.
+         - Blocked from Open: complaint not yet assigned, no work has started.
+         - Blocked from Assigned: agent has not even begun working — escalation from here
+           means the agent skipped all work, which is not valid escalation.
+         - Blocked from Escalated: already escalated, duplicate escalation is meaningless.
+         - Blocked from Resolved/Closed: issue is over, escalation makes no sense.
+         Two triggers for escalation:
+         1. Manual — agent decides the issue is beyond their scope (needs senior authority,
+            financial approval, or technical expertise they don't have).
+         2. Automatic — SLA background job escalates on deadline breach regardless of status.
+
+       * → Resolved
+         Reason: Requires either a note or an uploaded attachment as resolution evidence.
+         Attachments serve two purposes — customer uploads supporting documents at submission,
+         agent uploads resolution documents or files shared during the interaction.
+         Mandating attachment alone is too strict (some resolutions involve no files).
+         Mandating note alone misses cases where a document tells the full story.
+         Either one is sufficient evidence that resolution was deliberate and documented.
+
+       * → Closed (feedback rating 3, 4, or 5)
+         Reason: Customer is satisfied. Agent, admin, or supervisor can close.
+
+       * → Closed (feedback rating 1 or 2)
+         Reason: Customer is dissatisfied. Closing without follow-up would bury a bad experience.
+         Only admin/supervisor can close, and a mandatory note is required to document
+         what action was taken with the customer before closure.
+
+       * → Closed (no feedback, less than 7 days since resolved)
+         Reason: Customer has not yet had reasonable time to respond. Blocked for all roles.
+
+       * → Closed (no feedback, 7 or more days since resolved)
+         Reason: Customer has had sufficient time but has not responded. Force-close is allowed
+         but only by admin/supervisor with a mandatory note explaining the decision.
+         This prevents complaints from being stuck in Resolved indefinitely.
+
+4. WHO MARKS COMPLAINT AS RESOLVED [RESOLVED]
+   - Problem: Workflow Step 5 says "Complaint resolved or escalated" with no Actor specified.
+     It is not stated whether the agent, admin, supervisor, or system marks the complaint Resolved.
+   - Why this resolution: The agent is the first-line contact who directly handled the complaint
+     from Assigned through In Progress. Only the agent has full context on what was done to
+     resolve the issue. Allowing admin/supervisor to mark it Resolved would bypass the agent's
+     accountability, could mask complaints that still need work, and removes the agent's
+     professional ownership of the outcome.
+   - Resolution: Only the assigned agent can mark a complaint as Resolved.
+       * Role check: req.user.role must be "agent" — admin/supervisor blocked with 403
+       * Assignment check: req.user.id must match complaint.assigned_to — other agents blocked
+       * Evidence check still applies: note or attachment required to document resolution
+       * Admin/Supervisor retain oversight via: assignment, escalation, force-close after 7 days,
+         and the ability to reopen (Closed → Assigned) if the resolution was inadequate
+
+5. CUSTOMER CONFIRMATION OF RESOLUTION [RESOLVED]
+   - Problem: Workflow Step 6 says "Customer confirms resolution" but does not define
+     what confirmation means operationally. Two interpretations are possible:
+       A. Explicit confirmation — customer clicks an Approve or Reject button.
+       B. Implicit confirmation — customer's feedback rating acts as confirmation.
+   - Why this resolution: An explicit binary Approve/Reject button duplicates what the
+     star rating already expresses. A high rating (3–5) signals satisfaction (implicit
+     approval); a low rating (1–2) signals dissatisfaction (implicit rejection).
+     Adding a separate button would create two overlapping confirmation mechanisms.
+     The Reopen feature (Resolved → In Progress) provides the functional equivalent
+     of Interpretation A without adding a redundant UI element — a customer who is
+     not satisfied with the resolution can reopen the complaint, which is stronger than
+     simply clicking "Reject" because it forces active re-engagement.
+   - Resolution: Interpretation B is the confirmed approach.
+       * Feedback rating 3–5 → satisfied; complaint moves toward Closed
+       * Feedback rating 1–2 → dissatisfied; admin/supervisor reviews before closing
+       * Issue persists after closure → admin/supervisor can reopen (Closed → Assigned)
+         with a mandatory reason; resolved_at is cleared; assigned agent is notified
+
+6. CROSS-CATEGORY AGENT ASSIGNMENT [RESOLVED]
+   - Problem: Agent-category mapping enforces that agents can only be assigned to
+     complaints in their mapped categories. This is correct 99% of the time but creates
+     an operational problem during peak load or when a category's agents are all
+     unavailable. A rigid block with no override path would cause complaints to stall.
+   - Why this resolution: A complete block is too inflexible for real operational use.
+     However, unrestricted override would defeat the purpose of the mapping entirely.
+     The right balance is a controlled escape hatch with full accountability:
+     the override requires a mandatory reason, is approved by either admin or supervisor
+     (one is sufficient — joint approval is too slow for an escalation scenario),
+     the other management role is always notified so dual visibility is maintained,
+     and every override is logged permanently in a dedicated table.
+   - Resolution: Cross-category assignment override implemented with:
+       * Admin or supervisor can override the category restriction
+       * Mandatory reason note required — cannot be empty
+       * Other management role (admin notifies supervisor, supervisor notifies admin) is
+         sent an in-app notification with the reason
+       * Agent receives a distinct notification that this is a cross-category assignment
+       * Every override is recorded in cross_category_assignments table with:
+         complaint_id, agent_id, category_id (bypassed), assigned_by, note, assigned_at
+       * Reports page shows cross-assignment count, breakdown by category and agent,
+         and a full override log — giving quality team full visibility

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>High-Level Design – CCRTS</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #333; font-size: 14px; }
+  .container { max-width: 960px; margin: 40px auto; background: white; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.10); overflow: hidden; }
+  .cover { background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; padding: 60px 48px; }
+  .cover h1 { font-size: 32px; font-weight: 800; letter-spacing: 1px; margin-bottom: 8px; }
+  .cover .subtitle { font-size: 16px; opacity: 0.8; margin-bottom: 32px; }
+  .cover .meta { display: flex; gap: 32px; flex-wrap: wrap; }
+  .cover .meta div { background: rgba(255,255,255,0.12); border-radius: 8px; padding: 12px 20px; }
+  .cover .meta label { font-size: 11px; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; display: block; }
+  .cover .meta span { font-size: 14px; font-weight: 600; }
+  .toc { background: #f8f9fa; padding: 32px 48px; border-bottom: 1px solid #e9ecef; }
+  .toc h2 { font-size: 16px; color: #1e3c72; font-weight: 700; margin-bottom: 16px; }
+  .toc ol { padding-left: 20px; line-height: 2; }
+  .toc a { color: #2a5298; text-decoration: none; font-size: 13px; }
+  .body { padding: 48px; }
+  h2.section { font-size: 20px; color: #1e3c72; font-weight: 700; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 3px solid #1e3c72; }
+  h3.sub { font-size: 15px; color: #2a5298; font-weight: 600; margin: 24px 0 10px; }
+  p { line-height: 1.8; color: #555; margin-bottom: 12px; }
+  ul, ol { padding-left: 22px; line-height: 2; color: #555; margin-bottom: 12px; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: 13px; }
+  th { background: #1e3c72; color: white; padding: 10px 14px; text-align: left; font-weight: 600; }
+  td { padding: 9px 14px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+  tr:nth-child(even) td { background: #f8f9fa; }
+  .callout { background: #eef4ff; border-left: 4px solid #1e3c72; padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 16px 0; font-size: 13px; color: #1e3c72; }
+  .arch-box { border: 2px solid #1e3c72; border-radius: 10px; overflow: hidden; margin: 20px 0; }
+  .arch-layer { padding: 20px 24px; border-bottom: 1px solid #e0e8ff; }
+  .arch-layer:last-child { border-bottom: none; }
+  .arch-layer .layer-title { font-weight: 700; font-size: 13px; color: #1e3c72; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+  .arch-layer.l1 { background: #eef4ff; }
+  .arch-layer.l2 { background: #e8f5e9; }
+  .arch-layer.l3 { background: #fff8e1; }
+  .tech-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+  .pill { background: white; border: 1px solid #ccc; border-radius: 16px; padding: 3px 12px; font-size: 12px; color: #333; }
+  .module-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .module-card { background: #f8f9fa; border-radius: 8px; padding: 16px; border-left: 4px solid #1e3c72; }
+  .module-card h4 { font-size: 13px; color: #1e3c72; margin-bottom: 8px; font-weight: 700; }
+  .module-card ul { padding-left: 16px; font-size: 12px; line-height: 1.9; color: #555; }
+  .method { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; margin-right: 4px; }
+  .GET  { background: #d4edda; color: #155724; }
+  .POST { background: #cce5ff; color: #004085; }
+  .PUT  { background: #fff3cd; color: #856404; }
+  .DEL  { background: #f8d7da; color: #721c24; }
+  .screen-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+  .screen-card { background: #f8f9fa; border-radius: 8px; padding: 14px; text-align: center; border-top: 3px solid #2a5298; }
+  .screen-card .icon { font-size: 24px; margin-bottom: 6px; }
+  .screen-card h4 { font-size: 12px; font-weight: 700; color: #1e3c72; margin-bottom: 4px; }
+  .screen-card p { font-size: 11px; color: #888; margin: 0; }
+  .roles-access { }
+  .footer { background: #f8f9fa; padding: 24px 48px; border-top: 1px solid #e9ecef; text-align: center; font-size: 12px; color: #aaa; }
+  code { background: #f0f0f0; padding: 1px 6px; border-radius: 4px; font-family: monospace; font-size: 12px; color: #c7254e; }
+  @media print {
+    body { background: white; }
+    .container { box-shadow: none; border-radius: 0; margin: 0; }
+    .cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    th, .arch-layer { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .module-grid { grid-template-columns: 1fr 1fr; }
+    .screen-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="cover">
+    <h1>High-Level Design Document</h1>
+    <div class="subtitle">Customer Complaint &amp; Resolution Tracking System (CCRTS)</div>
+    <div class="meta">
+      <div><label>Version</label><span>1.0</span></div>
+      <div><label>Phase</label><span>Phase 1</span></div>
+      <div><label>Date</label><span>May 2026</span></div>
+      <div><label>Status</label><span>Implemented</span></div>
+    </div>
+  </div>
+
+  <div class="toc">
+    <h2>Table of Contents</h2>
+    <ol>
+      <li><a href="#s1">System Architecture</a></li>
+      <li><a href="#s2">Technology Stack</a></li>
+      <li><a href="#s3">Module Breakdown</a></li>
+      <li><a href="#s4">API Endpoint Design</a></li>
+      <li><a href="#s5">Role-Based Access Control</a></li>
+      <li><a href="#s6">Complaint Lifecycle Design</a></li>
+      <li><a href="#s7">User Interface Screens</a></li>
+      <li><a href="#s8">Background Jobs</a></li>
+      <li><a href="#s9">Security Design</a></li>
+      <li><a href="#s10">Folder Structure</a></li>
+    </ol>
+  </div>
+
+  <div class="body">
+
+    <!-- 1. Architecture -->
+    <h2 class="section" id="s1">1. System Architecture</h2>
+    <p>CCRTS follows a <strong>3-Tier Architecture</strong> — Presentation, Application, and Data layers are fully separated, allowing independent scaling and maintenance.</p>
+
+    <div class="arch-box">
+      <div class="arch-layer l1">
+        <div class="layer-title">Presentation Layer (Frontend)</div>
+        <p style="font-size:12px;color:#555;margin-bottom:8px;">React.js SPA running on Vite dev server (port 5173). Communicates with backend exclusively via Axios HTTP calls.</p>
+        <div class="tech-pills">
+          <span class="pill">React 19</span>
+          <span class="pill">Vite 8</span>
+          <span class="pill">React Router DOM v7</span>
+          <span class="pill">Axios</span>
+          <span class="pill">React Icons</span>
+          <span class="pill">Pure CSS Charts</span>
+        </div>
+      </div>
+      <div class="arch-layer l2">
+        <div class="layer-title">Application Layer (Backend)</div>
+        <p style="font-size:12px;color:#555;margin-bottom:8px;">Node.js + Express v5 REST API server running on port 3001. Handles authentication, business logic, file uploads, notifications, and background SLA jobs.</p>
+        <div class="tech-pills">
+          <span class="pill">Node.js 24</span>
+          <span class="pill">Express v5</span>
+          <span class="pill">JWT (jsonwebtoken)</span>
+          <span class="pill">bcryptjs</span>
+          <span class="pill">Multer v2</span>
+          <span class="pill">dotenv</span>
+          <span class="pill">CORS</span>
+        </div>
+      </div>
+      <div class="arch-layer l3">
+        <div class="layer-title">Data Layer (Database)</div>
+        <p style="font-size:12px;color:#555;margin-bottom:8px;">SQLite database accessed via Node.js built-in <code>DatabaseSync</code> API. Single file DB (ccrts.db) — no external DB server required.</p>
+        <div class="tech-pills">
+          <span class="pill">SQLite (node:sqlite)</span>
+          <span class="pill">DatabaseSync API</span>
+          <span class="pill">ALTER TABLE Migrations</span>
+          <span class="pill">CHECK Constraints</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Tech Stack -->
+    <h2 class="section" id="s2">2. Technology Stack</h2>
+    <table>
+      <thead><tr><th>Layer</th><th>Technology</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>Frontend Framework</td><td>React 19 + Vite 8</td><td>SPA UI with fast HMR dev experience</td></tr>
+        <tr><td>Routing</td><td>React Router DOM v7</td><td>Client-side page routing with protected routes</td></tr>
+        <tr><td>HTTP Client</td><td>Axios</td><td>API calls with request/response interceptors</td></tr>
+        <tr><td>Backend Framework</td><td>Express v5 (Node.js)</td><td>REST API server with middleware support</td></tr>
+        <tr><td>Authentication</td><td>JWT + bcryptjs</td><td>Stateless token auth + password hashing</td></tr>
+        <tr><td>File Uploads</td><td>Multer v2</td><td>Multipart form handling, disk storage</td></tr>
+        <tr><td>Database</td><td>SQLite (node:sqlite)</td><td>Embedded relational DB, zero config</td></tr>
+        <tr><td>Icons</td><td>React Icons 5</td><td>Sidebar and UI icons</td></tr>
+        <tr><td>Version Control</td><td>Git + GitHub</td><td>Source control and collaboration</td></tr>
+        <tr><td>Dev Tools</td><td>VS Code + Postman</td><td>Development and API testing</td></tr>
+      </tbody>
+    </table>
+
+    <!-- 3. Modules -->
+    <h2 class="section" id="s3">3. Module Breakdown</h2>
+    <div class="module-grid">
+      <div class="module-card">
+        <h4>Auth Module</h4>
+        <ul>
+          <li>User registration &amp; login</li>
+          <li>JWT token generation</li>
+          <li>protect middleware</li>
+          <li>requireRole middleware</li>
+        </ul>
+      </div>
+      <div class="module-card">
+        <h4>Complaint Module</h4>
+        <ul>
+          <li>Create / view / update complaints</li>
+          <li>Auto-generate CMP-XXX IDs</li>
+          <li>Status transitions with history</li>
+          <li>SLA deadline computation</li>
+        </ul>
+      </div>
+      <div class="module-card">
+        <h4>SLA &amp; Escalation Module</h4>
+        <ul>
+          <li>Background SLA checker (5 min)</li>
+          <li>Auto-escalation on breach</li>
+          <li>Escalation dashboard view</li>
+          <li>Supervisor reassignment</li>
+        </ul>
+      </div>
+      <div class="module-card">
+        <h4>Notification Module</h4>
+        <ul>
+          <li>DB-stored notifications</li>
+          <li>30s frontend polling</li>
+          <li>Mark read / mark all read</li>
+          <li>Complaint deep-link on click</li>
+        </ul>
+      </div>
+      <div class="module-card">
+        <h4>Attachment Module</h4>
+        <ul>
+          <li>Multer file upload (5MB max)</li>
+          <li>Allowed: PDF, JPG, PNG, DOC, TXT</li>
+          <li>Static file serving from /uploads</li>
+          <li>Download links in complaint detail</li>
+        </ul>
+      </div>
+      <div class="module-card">
+        <h4>Feedback Module</h4>
+        <ul>
+          <li>Star rating (1–5) with comments</li>
+          <li>Only for Resolved/Closed complaints</li>
+          <li>Duplicate submission prevention</li>
+          <li>Aggregated in Reports</li>
+        </ul>
+      </div>
+      <div class="module-card">
+        <h4>Reports Module</h4>
+        <ul>
+          <li>Single aggregated API endpoint</li>
+          <li>Overview, by category, by priority</li>
+          <li>Monthly trend (6 months)</li>
+          <li>Agent performance + satisfaction</li>
+          <li>Cross-category assignment log</li>
+        </ul>
+      </div>
+      <div class="module-card">
+        <h4>User Management Module</h4>
+        <ul>
+          <li>Admin-only user list</li>
+          <li>Role change per user</li>
+          <li>User deletion (self-protected)</li>
+          <li>Role badge display</li>
+        </ul>
+      </div>
+      <div class="module-card">
+        <h4>Agent Category Module</h4>
+        <ul>
+          <li>Agent-to-category mapping management</li>
+          <li>Last-agent removal guard per category</li>
+          <li>Category-filtered assignment dropdown</li>
+          <li>Cross-category override with audit log</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 4. API Endpoints -->
+    <h2 class="section" id="s4">4. API Endpoint Design</h2>
+
+    <h3 class="sub">4.1 Auth Routes — <code>/api/auth</code></h3>
+    <table>
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th><th>Auth</th></tr></thead>
+      <tbody>
+        <tr><td><span class="method POST">POST</span></td><td>/register</td><td>Register new user</td><td>Public</td></tr>
+        <tr><td><span class="method POST">POST</span></td><td>/login</td><td>Login and get JWT token</td><td>Public</td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="sub">4.2 Complaint Routes — <code>/api/complaints</code></h3>
+    <table>
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td><span class="method POST">POST</span></td><td>/create</td><td>Create new complaint</td><td>All</td></tr>
+        <tr><td><span class="method GET">GET</span></td><td>/all</td><td>Get all complaints with filters</td><td>Admin/Agent/Supervisor/Quality</td></tr>
+        <tr><td><span class="method GET">GET</span></td><td>/stats</td><td>Complaint statistics for dashboard</td><td>All</td></tr>
+        <tr><td><span class="method GET">GET</span></td><td>/my-queue</td><td>Agent's assigned complaints</td><td>Agent</td></tr>
+        <tr><td><span class="method GET">GET</span></td><td>/my-stats</td><td>Agent's personal performance stats</td><td>Agent</td></tr>
+        <tr><td><span class="method GET">GET</span></td><td>/escalated</td><td>All escalated complaints</td><td>Admin/Supervisor</td></tr>
+        <tr><td><span class="method GET">GET</span></td><td>/:id</td><td>Get single complaint detail</td><td>All</td></tr>
+        <tr><td><span class="method PUT">PUT</span></td><td>/priority/:id</td><td>Set complaint priority (triggers SLA computation)</td><td>Admin/Supervisor</td></tr>
+        <tr><td><span class="method PUT">PUT</span></td><td>/update-status/:id</td><td>Update complaint status</td><td>Admin/Agent/Supervisor</td></tr>
+        <tr><td><span class="method PUT">PUT</span></td><td>/assign/:id</td><td>Assign complaint to agent. Optional body: <code>cross_category: true</code> + mandatory <code>note</code> for override assignment outside category mapping</td><td>Admin/Supervisor</td></tr>
+        <tr><td><span class="method DEL">DELETE</span></td><td>/delete/:id</td><td>Delete complaint</td><td>Admin</td></tr>
+        <tr><td><span class="method POST">POST</span></td><td>/:id/attachments</td><td>Upload attachment</td><td>All</td></tr>
+        <tr><td><span class="method GET">GET</span></td><td>/:id/attachments</td><td>Get complaint attachments</td><td>All</td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="sub">4.3 Other Routes</h3>
+    <table>
+      <thead><tr><th>Base Path</th><th>Key Endpoints</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>/api/notifications</code></td><td>GET /, GET /count, PUT /read-all, PUT /:id/read</td><td>Notification management</td></tr>
+        <tr><td><code>/api/feedback/:complaint_id</code></td><td>POST /, GET /</td><td>Submit and fetch feedback</td></tr>
+        <tr><td><code>/api/reports</code></td><td>GET /</td><td>Full analytics payload including cross-assignment stats</td></tr>
+        <tr><td><code>/api/users</code></td><td>GET /, GET /agents, PUT /:id/role, DELETE /:id</td><td>User management (admin); agent list (admin/supervisor)</td></tr>
+        <tr><td><code>/api/agent-categories</code></td><td>GET / (all mappings), GET /categories (all categories), POST / (add mapping), DELETE /:agent_id/:category_id (remove mapping)</td><td>Agent-category mapping management. Read: admin+supervisor. Write: admin only.</td></tr>
+      </tbody>
+    </table>
+
+    <!-- 5. RBAC -->
+    <h2 class="section" id="s5">5. Role-Based Access Control</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Admin</th><th>Supervisor</th><th>Agent</th><th>Customer</th><th>Quality</th></tr></thead>
+      <tbody>
+        <tr><td>Dashboard</td><td>✅ Full</td><td>✅ Full</td><td>✅ Agent view</td><td>✅ My complaints</td><td>✅ Overview</td></tr>
+        <tr><td>Create Complaint</td><td>✅</td><td>—</td><td>✅</td><td>✅</td><td>—</td></tr>
+        <tr><td>View All Complaints</td><td>✅</td><td>✅</td><td>✅</td><td>—</td><td>✅</td></tr>
+        <tr><td>Assign Complaints</td><td>✅</td><td>✅</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td>Update Status</td><td>✅</td><td>✅</td><td>✅</td><td>—</td><td>—</td></tr>
+        <tr><td>Mark Resolved</td><td>—</td><td>—</td><td>✅ Assigned agent only</td><td>—</td><td>—</td></tr>
+        <tr><td>Agent Queue</td><td>—</td><td>—</td><td>✅</td><td>—</td><td>—</td></tr>
+        <tr><td>Escalation Dashboard</td><td>✅</td><td>✅</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td>Reports</td><td>✅</td><td>✅</td><td>—</td><td>—</td><td>✅</td></tr>
+        <tr><td>User Management</td><td>✅</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td>Submit Feedback</td><td>—</td><td>—</td><td>—</td><td>✅</td><td>—</td></tr>
+        <tr><td>Delete Complaint</td><td>✅</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td>Agent Category Management</td><td>✅ Full</td><td>✅ Read</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td>Cross-Category Override</td><td>✅</td><td>✅</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td>Reopen Complaint</td><td>✅</td><td>✅</td><td>—</td><td>—</td><td>—</td></tr>
+      </tbody>
+    </table>
+
+    <!-- 6. Lifecycle -->
+    <h2 class="section" id="s6">6. Complaint Lifecycle Design</h2>
+    <p>The complaint status is a controlled state machine. Invalid transitions are blocked at the API layer. The history table records every transition.</p>
+    <table>
+      <thead><tr><th>From Status</th><th>Allowed Next Status</th><th>Triggered By</th><th>Conditions</th></tr></thead>
+      <tbody>
+        <tr><td>Open</td><td>Assigned</td><td>Admin / Supervisor</td><td>Auto-set when agent is assigned</td></tr>
+        <tr><td>Assigned</td><td>In Progress</td><td>System</td><td>Auto-set when assigned agent adds first note</td></tr>
+        <tr><td>In Progress</td><td>Pending Customer Response, Resolved, Escalated</td><td>Assigned Agent / System</td><td>Resolved: assigned agent only; note or attachment required. Pending: mandatory note</td></tr>
+        <tr><td>Pending Customer Response</td><td>In Progress, Resolved, Escalated</td><td>Assigned Agent / System</td><td>Resolved: assigned agent only; note or attachment required</td></tr>
+        <tr><td>Escalated</td><td>In Progress, Resolved</td><td>Admin / Supervisor / Assigned Agent</td><td>Resolved: only by the assigned agent with evidence (note or attachment)</td></tr>
+        <tr><td>Resolved</td><td>Closed</td><td>Admin / Supervisor / Agent</td><td>Closing rules depend on feedback rating (see RS §6.5)</td></tr>
+        <tr><td>Closed</td><td>Assigned (reopen)</td><td>Admin / Supervisor only</td><td>Mandatory reason note required; <code>resolved_at</code> cleared; agent notified; other management role notified</td></tr>
+        <tr><td>Closed</td><td>— (terminal state)</td><td>—</td><td>—</td></tr>
+      </tbody>
+    </table>
+
+    <!-- 7. UI Screens -->
+    <h2 class="section" id="s7">7. User Interface Screens</h2>
+    <div class="screen-grid">
+      <div class="screen-card"><div class="icon">🔐</div><h4>Login Page</h4><p>Email/password authentication</p></div>
+      <div class="screen-card"><div class="icon">📝</div><h4>Register Page</h4><p>New customer self-registration</p></div>
+      <div class="screen-card"><div class="icon">📊</div><h4>Dashboard</h4><p>Role-specific stats and metrics</p></div>
+      <div class="screen-card"><div class="icon">➕</div><h4>Create Complaint</h4><p>New complaint submission form</p></div>
+      <div class="screen-card"><div class="icon">📋</div><h4>View Complaints</h4><p>Filterable complaint list table</p></div>
+      <div class="screen-card"><div class="icon">🔍</div><h4>Complaint Detail</h4><p>Full detail, history, attachments, feedback</p></div>
+      <div class="screen-card"><div class="icon">📥</div><h4>Agent Queue</h4><p>Priority-sorted assigned complaints</p></div>
+      <div class="screen-card"><div class="icon">⚠️</div><h4>Escalation Dashboard</h4><p>Escalated complaints with reassign</p></div>
+      <div class="screen-card"><div class="icon">📈</div><h4>Reports</h4><p>Analytics with charts</p></div>
+      <div class="screen-card"><div class="icon">👥</div><h4>User Management</h4><p>Admin user and role control</p></div>
+      <div class="screen-card"><div class="icon">🗂️</div><h4>Agent Categories</h4><p>Admin mapping of agents to complaint categories</p></div>
+    </div>
+
+    <!-- 8. Background Jobs -->
+    <h2 class="section" id="s8">8. Background Jobs</h2>
+    <table>
+      <thead><tr><th>Job</th><th>Frequency</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td>SLA Auto-Escalation</td><td>On server start + every 5 minutes</td><td>Finds complaints where <code>sla_deadline &lt; NOW()</code> and status is not Resolved/Closed/Escalated. Sets status to Escalated, records history, notifies supervisor/admin.</td></tr>
+        <tr><td>Notification Polling</td><td>Every 30 seconds (frontend)</td><td>Frontend polls <code>/api/notifications/count</code> to update the bell badge count.</td></tr>
+      </tbody>
+    </table>
+
+    <!-- 9. Security -->
+    <h2 class="section" id="s9">9. Security Design</h2>
+    <table>
+      <thead><tr><th>Concern</th><th>Implementation</th></tr></thead>
+      <tbody>
+        <tr><td>Authentication</td><td>JWT tokens with secret key stored in <code>.env</code>. Token required on every protected API call.</td></tr>
+        <tr><td>Authorization</td><td><code>protect</code> middleware validates token; <code>requireRole()</code> enforces role restrictions per route.</td></tr>
+        <tr><td>Password Storage</td><td>bcryptjs with salt rounds=10. Plaintext passwords never stored.</td></tr>
+        <tr><td>Auto-Logout</td><td>Axios response interceptor detects 401 and clears localStorage, redirecting to login.</td></tr>
+        <tr><td>Self-Protection</td><td>Users cannot delete themselves or change their own role.</td></tr>
+        <tr><td>File Upload</td><td>Multer validates file type (whitelist) and enforces 5MB size limit.</td></tr>
+        <tr><td>CORS</td><td>Express CORS middleware restricts API access to known origins.</td></tr>
+      </tbody>
+    </table>
+
+    <!-- 10. Folder Structure -->
+    <h2 class="section" id="s10">10. Folder Structure</h2>
+    <div style="background:#1e3c72;color:#e8f0fe;padding:24px;border-radius:8px;font-family:monospace;font-size:13px;line-height:2;">
+      CCRTS/<br>
+      &nbsp;&nbsp;├── backend/<br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── config/db.js &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← DB init + schema<br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── controllers/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← Business logic<br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── middleware/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← auth + upload<br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── routes/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← Express routers<br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── utils/notify.js &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← Notification helpers<br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── database/ccrts.db &nbsp;&nbsp;&nbsp;← SQLite file (gitignored)<br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── uploads/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← Uploaded files<br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── seed.js &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← Demo data seeder<br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── server.js &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← App entry point<br>
+      &nbsp;&nbsp;├── frontend/<br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── src/<br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── components/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← Layout, NotificationBell, ProtectedRoute<br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── pages/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← All 10 page components<br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── services/api.js &nbsp;← Axios instance + interceptors<br>
+      &nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── App.jsx &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← Routes + guards<br>
+      &nbsp;&nbsp;├── docs/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← Design documents<br>
+      &nbsp;&nbsp;└── screenshots/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← UI screenshots
+    </div>
+
+  </div>
+  <div class="footer">CCRTS &nbsp;|&nbsp; High-Level Design Document &nbsp;|&nbsp; Version 1.0 &nbsp;|&nbsp; Phase 1 &nbsp;|&nbsp; To save as PDF: Ctrl+P → Save as PDF</div>
+</div>
+</body>
+</html>

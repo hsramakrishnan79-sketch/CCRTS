@@ -7,8 +7,10 @@ const {
   createComplaint,
   getComplaints,
   getComplaintById,
+  getMyComplaints,
   updateComplaintStatus,
   assignComplaint,
+  setPriority,
   deleteComplaint,
   getComplaintStats,
   getMyQueue,
@@ -29,8 +31,9 @@ router.get("/all",    requireRole(["admin", "agent", "supervisor", "quality"]), 
 router.get("/stats",  requireRole(["admin", "agent", "supervisor", "quality"]), getComplaintStats);
 
 // Agent-specific routes — must be before /:complaint_id
-router.get("/my-queue", requireRole("agent"), getMyQueue);
-router.get("/my-stats", requireRole("agent"), getMyStats);
+router.get("/my-queue",       requireRole("agent"),    getMyQueue);
+router.get("/my-stats",       requireRole("agent"),    getMyStats);
+router.get("/my-complaints",  requireRole("customer"), getMyComplaints);
 
 // Escalation view — admin, supervisor
 router.get("/escalated", requireRole(["admin", "supervisor"]), getEscalated);
@@ -46,7 +49,10 @@ router.get("/:complaint_id", getComplaintById);
 router.put("/update-status/:complaint_id", requireRole(["admin", "agent", "supervisor"]), updateComplaintStatus);
 
 // Assign — admin, supervisor
-router.put("/assign/:complaint_id", requireRole(["admin", "supervisor"]), assignComplaint);
+router.put("/assign/:complaint_id",    requireRole(["admin", "supervisor"]), assignComplaint);
+
+// Set priority — admin, supervisor
+router.put("/priority/:complaint_id",  requireRole(["admin", "supervisor"]), setPriority);
 
 // Delete — admin only
 router.delete("/delete/:complaint_id", requireRole("admin"), deleteComplaint);

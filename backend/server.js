@@ -8,12 +8,13 @@ dotenv.config();
 const db = require("./config/db");
 const { notifyRole } = require("./utils/notify");
 
-const authRoutes         = require("./routes/authRoutes");
-const complaintRoutes    = require("./routes/complaintRoutes");
-const feedbackRoutes     = require("./routes/feedbackRoutes");
-const userRoutes         = require("./routes/userRoutes");
-const notificationRoutes = require("./routes/notificationRoutes");
-const reportsRoutes      = require("./routes/reportsRoutes");
+const authRoutes             = require("./routes/authRoutes");
+const complaintRoutes        = require("./routes/complaintRoutes");
+const feedbackRoutes         = require("./routes/feedbackRoutes");
+const userRoutes             = require("./routes/userRoutes");
+const notificationRoutes     = require("./routes/notificationRoutes");
+const reportsRoutes          = require("./routes/reportsRoutes");
+const agentCategoryRoutes    = require("./routes/agentCategoryRoutes");
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use("/api/feedback/:complaint_id",feedbackRoutes);
 app.use("/api/users",                 userRoutes);
 app.use("/api/notifications",         notificationRoutes);
 app.use("/api/reports",               reportsRoutes);
+app.use("/api/agent-categories",      agentCategoryRoutes);
 
 app.get("/", (_req, res) => res.send("CCRTS Backend Running"));
 

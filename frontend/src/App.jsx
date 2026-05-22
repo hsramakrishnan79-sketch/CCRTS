@@ -9,6 +9,8 @@ import ComplaintDetail from "./pages/ComplaintDetail";
 import AgentQueue from "./pages/AgentQueue";
 import EscalationDashboard from "./pages/EscalationDashboard";
 import UserManagement from "./pages/UserManagement";
+import AgentCategories from "./pages/AgentCategories";
+import MyComplaints from "./pages/MyComplaints";
 import Reports from "./pages/Reports";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -72,10 +74,26 @@ function App() {
           </ProtectedRoute>
         } />
 
+        <Route path="/admin/agent-categories" element={
+          <ProtectedRoute>
+            <RoleRoute roles={["admin"]}>
+              <AgentCategories />
+            </RoleRoute>
+          </ProtectedRoute>
+        } />
+
         <Route path="/reports" element={
           <ProtectedRoute>
             <RoleRoute roles={["admin", "supervisor", "quality"]}>
               <Reports />
+            </RoleRoute>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/my-complaints" element={
+          <ProtectedRoute>
+            <RoleRoute roles={["customer"]}>
+              <MyComplaints />
             </RoleRoute>
           </ProtectedRoute>
         } />

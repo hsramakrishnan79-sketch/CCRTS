@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Requirement Specification – CCRTS</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #333; font-size: 14px; }
+  .container { max-width: 960px; margin: 40px auto; background: white; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.10); overflow: hidden; }
+  .cover { background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; padding: 60px 48px; }
+  .cover h1 { font-size: 32px; font-weight: 800; letter-spacing: 1px; margin-bottom: 8px; }
+  .cover .subtitle { font-size: 16px; opacity: 0.8; margin-bottom: 32px; }
+  .cover .meta { display: flex; gap: 32px; flex-wrap: wrap; }
+  .cover .meta div { background: rgba(255,255,255,0.12); border-radius: 8px; padding: 12px 20px; }
+  .cover .meta label { font-size: 11px; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; display: block; }
+  .cover .meta span { font-size: 14px; font-weight: 600; }
+  .toc { background: #f8f9fa; padding: 32px 48px; border-bottom: 1px solid #e9ecef; }
+  .toc h2 { font-size: 16px; color: #1e3c72; font-weight: 700; margin-bottom: 16px; }
+  .toc ol { padding-left: 20px; line-height: 2; }
+  .toc a { color: #2a5298; text-decoration: none; font-size: 13px; }
+  .toc a:hover { text-decoration: underline; }
+  .body { padding: 48px; }
+  h2.section { font-size: 20px; color: #1e3c72; font-weight: 700; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 3px solid #1e3c72; }
+  h3.sub { font-size: 15px; color: #2a5298; font-weight: 600; margin: 24px 0 10px; }
+  h4.sub2 { font-size: 13px; color: #444; font-weight: 600; margin: 16px 0 8px; }
+  p { line-height: 1.8; color: #555; margin-bottom: 12px; }
+  ul, ol { padding-left: 22px; line-height: 2; color: #555; margin-bottom: 12px; }
+  li { margin-bottom: 2px; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: 13px; }
+  th { background: #1e3c72; color: white; padding: 10px 14px; text-align: left; font-weight: 600; }
+  td { padding: 9px 14px; border-bottom: 1px solid #f0f0f0; }
+  tr:nth-child(even) td { background: #f8f9fa; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+  .badge.in  { background: #d4edda; color: #155724; }
+  .badge.out { background: #f8d7da; color: #721c24; }
+  .badge.high { background: #fff3cd; color: #856404; }
+  .callout { background: #eef4ff; border-left: 4px solid #1e3c72; padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 16px 0; font-size: 13px; color: #1e3c72; }
+  .role-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin: 16px 0; }
+  .role-card { background: #f8f9fa; border-radius: 8px; padding: 16px; border-top: 3px solid #1e3c72; }
+  .role-card h4 { font-size: 13px; color: #1e3c72; margin-bottom: 8px; }
+  .role-card ul { padding-left: 16px; font-size: 12px; line-height: 1.9; }
+  .workflow { display: flex; gap: 0; flex-wrap: wrap; margin: 16px 0; }
+  .step { display: flex; align-items: center; gap: 0; }
+  .step-box { background: #1e3c72; color: white; padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; text-align: center; min-width: 120px; }
+  .step-arrow { color: #1e3c72; font-size: 20px; padding: 0 6px; }
+  .footer { background: #f8f9fa; padding: 24px 48px; border-top: 1px solid #e9ecef; text-align: center; font-size: 12px; color: #aaa; }
+  @media print {
+    body { background: white; }
+    .container { box-shadow: none; border-radius: 0; margin: 0; }
+    .cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Cover -->
+  <div class="cover">
+    <h1>Requirement Specification Document</h1>
+    <div class="subtitle">Customer Complaint &amp; Resolution Tracking System (CCRTS)</div>
+    <div class="meta">
+      <div><label>Version</label><span>1.0</span></div>
+      <div><label>Phase</label><span>Phase 1</span></div>
+      <div><label>Date</label><span>May 2026</span></div>
+      <div><label>Status</label><span>Approved</span></div>
+    </div>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc">
+    <h2>Table of Contents</h2>
+    <ol>
+      <li><a href="#s1">Introduction</a></li>
+      <li><a href="#s2">Business Need</a></li>
+      <li><a href="#s3">Project Objectives</a></li>
+      <li><a href="#s4">Scope of the Project</a></li>
+      <li><a href="#s5">Target Users</a></li>
+      <li><a href="#s6">Functional Requirements</a></li>
+      <li><a href="#s7">Non-Functional Requirements</a></li>
+      <li><a href="#s8">Complaint Categories</a></li>
+      <li><a href="#s9">SLA Rules</a></li>
+      <li><a href="#s10">Complaint Workflow</a></li>
+      <li><a href="#s11">Agent-Category Management</a></li>
+    </ol>
+  </div>
+
+  <div class="body">
+
+    <!-- 1. Introduction -->
+    <h2 class="section" id="s1">1. Introduction</h2>
+    <h3 class="sub">1.1 Project Title</h3>
+    <p><strong>Customer Complaint &amp; Resolution Tracking System (CCRTS)</strong></p>
+
+    <h3 class="sub">1.2 Project Description</h3>
+    <p>The Customer Complaint &amp; Resolution Tracking System is a centralized web-based application designed to help organizations efficiently manage, monitor, and resolve customer complaints and service issues.</p>
+    <p>The platform enables customers, support teams, service agents, supervisors, and administrators to log complaints, assign issues, track progress, communicate updates, and ensure timely resolution of customer concerns.</p>
+
+    <h3 class="sub">1.3 Applicable Industries</h3>
+    <ul>
+      <li>Telecom &amp; IT Support Services</li>
+      <li>Banking &amp; Financial Services</li>
+      <li>Retail &amp; E-Commerce</li>
+      <li>Healthcare &amp; Education</li>
+      <li>Logistics &amp; Utility Services</li>
+    </ul>
+
+    <!-- 2. Business Need -->
+    <h2 class="section" id="s2">2. Business Need</h2>
+    <p>Organizations often struggle with customer complaint management because complaints are tracked manually using emails, spreadsheets, or disconnected systems. This creates several operational challenges:</p>
+    <ul>
+      <li>Delayed issue resolution</li>
+      <li>Poor complaint visibility across teams</li>
+      <li>Missed SLA commitments</li>
+      <li>Lack of accountability</li>
+      <li>Duplicate complaint handling</li>
+      <li>Inefficient communication with customers</li>
+      <li>Difficulty tracking complaint history</li>
+      <li>Low customer satisfaction</li>
+    </ul>
+    <div class="callout">The CCRTS addresses these challenges by providing a unified platform for complaint registration, workflow management, escalation handling, resolution tracking, and reporting.</div>
+
+    <!-- 3. Objectives -->
+    <h2 class="section" id="s3">3. Project Objectives</h2>
+    <h3 class="sub">3.1 Primary Objectives</h3>
+    <ul>
+      <li>Centralize complaint management operations</li>
+      <li>Improve customer satisfaction</li>
+      <li>Enable faster complaint resolution</li>
+      <li>Ensure SLA compliance</li>
+      <li>Improve support team efficiency</li>
+      <li>Track complaint lifecycle effectively</li>
+    </ul>
+    <h3 class="sub">3.2 Technical Objectives</h3>
+    <ul>
+      <li>Build secure role-based access control (RBAC)</li>
+      <li>Develop scalable REST APIs</li>
+      <li>Enable complaint workflow automation</li>
+      <li>Maintain complaint history and audit trails</li>
+      <li>Implement dashboards and reporting</li>
+      <li>Build responsive and user-friendly UI</li>
+    </ul>
+
+    <!-- 4. Scope -->
+    <h2 class="section" id="s4">4. Scope of the Project</h2>
+    <h3 class="sub">4.1 In Scope</h3>
+    <table>
+      <thead><tr><th>Area</th><th>Features</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Complaint Registration</td><td>Create, capture details, upload documents, auto-generate IDs</td><td><span class="badge in">In Scope</span></td></tr>
+        <tr><td>Complaint Management</td><td>Assign to agents, update status, add resolution comments, track history</td><td><span class="badge in">In Scope</span></td></tr>
+        <tr><td>Workflow &amp; Escalation</td><td>Escalate unresolved complaints, track SLA, reassign, notify teams</td><td><span class="badge in">In Scope</span></td></tr>
+        <tr><td>Customer Communication</td><td>Send updates, resolution notifications, track feedback</td><td><span class="badge in">In Scope</span></td></tr>
+        <tr><td>Dashboard &amp; Analytics</td><td>Complaint stats, resolution metrics, SLA tracking, agent performance</td><td><span class="badge in">In Scope</span></td></tr>
+        <tr><td>User &amp; Role Management</td><td>Admin, agent, supervisor, customer, quality team management</td><td><span class="badge in">In Scope</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="sub">4.2 Out of Scope</h3>
+    <ul>
+      <li><span class="badge out">Excluded</span> &nbsp;AI-based complaint classification</li>
+      <li><span class="badge out">Excluded</span> &nbsp;Chatbot integration</li>
+      <li><span class="badge out">Excluded</span> &nbsp;Voice complaint registration</li>
+      <li><span class="badge out">Excluded</span> &nbsp;Mobile application</li>
+      <li><span class="badge out">Excluded</span> &nbsp;Social media complaint integration</li>
+      <li><span class="badge out">Excluded</span> &nbsp;Multi-language support</li>
+      <li><span class="badge out">Excluded</span> &nbsp;Real-time video support</li>
+    </ul>
+
+    <!-- 5. Target Users -->
+    <h2 class="section" id="s5">5. Target Users</h2>
+    <div class="role-grid">
+      <div class="role-card">
+        <h4>Customer</h4>
+        <ul>
+          <li>Register complaints</li>
+          <li>View complaint status</li>
+          <li>Upload documents</li>
+          <li>Provide feedback</li>
+        </ul>
+      </div>
+      <div class="role-card">
+        <h4>Support Agent</h4>
+        <ul>
+          <li>View assigned complaints</li>
+          <li>Update complaint status</li>
+          <li>Add resolution details</li>
+          <li>Communicate with customers</li>
+        </ul>
+      </div>
+      <div class="role-card">
+        <h4>Supervisor</h4>
+        <ul>
+          <li>Monitor complaint queues</li>
+          <li>Handle escalations</li>
+          <li>Review SLA breaches</li>
+          <li>Generate reports</li>
+        </ul>
+      </div>
+      <div class="role-card">
+        <h4>Administrator</h4>
+        <ul>
+          <li>Full system access</li>
+          <li>Manage users &amp; roles</li>
+          <li>Manage agent-category mappings</li>
+          <li>Cross-category assignment override</li>
+          <li>Access all analytics</li>
+        </ul>
+      </div>
+      <div class="role-card">
+        <h4>Quality Team</h4>
+        <ul>
+          <li>Analyze complaint trends</li>
+          <li>Monitor service quality</li>
+          <li>View all complaints</li>
+          <li>Access reports</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 6. Functional Requirements -->
+    <h2 class="section" id="s6">6. Functional Requirements</h2>
+
+    <h3 class="sub">6.1 User Authentication &amp; Authorization</h3>
+    <ul>
+      <li>User registration with role assignment</li>
+      <li>Secure login and logout with JWT session management</li>
+      <li>Role-based access control (RBAC) for all routes</li>
+      <li>Password encryption using bcrypt</li>
+      <li>Automatic session expiry and redirect on token expiry</li>
+    </ul>
+
+    <h3 class="sub">6.2 Complaint Registration</h3>
+    <ul>
+      <li>Register new complaint with category and description</li>
+      <li>Auto-generate unique complaint ID (format: CMP-XXX)</li>
+      <li>Select complaint category from predefined list</li>
+      <li>Upload supporting attachments (PDF, JPG, PNG, DOC, TXT — max 5MB)</li>
+      <li>Priority is <strong>not set at submission</strong> — admin/supervisor assigns it after reviewing the complaint</li>
+      <li>SLA deadline is computed and stored when admin/supervisor sets the priority</li>
+    </ul>
+
+    <h4 class="sub2">Complaint Information Fields</h4>
+    <table>
+      <thead><tr><th>Field</th><th>Description</th><th>Set By</th></tr></thead>
+      <tbody>
+        <tr><td>Complaint ID</td><td>Auto-generated unique identifier (CMP-XXX)</td><td>System</td></tr>
+        <tr><td>Customer</td><td>Derived from the logged-in user account</td><td>System</td></tr>
+        <tr><td>Category</td><td>Type of complaint (selected from 7 predefined categories)</td><td>Customer</td></tr>
+        <tr><td>Description</td><td>Detailed complaint description</td><td>Customer</td></tr>
+        <tr><td>Status</td><td>Current workflow status</td><td>System (default: Open)</td></tr>
+        <tr><td>Priority</td><td>Low / Medium / High / Critical — set after review</td><td>Admin / Supervisor</td></tr>
+        <tr><td>SLA Deadline</td><td>Computed at the moment priority is assigned</td><td>System (on priority set)</td></tr>
+        <tr><td>Created At</td><td>Complaint submission timestamp</td><td>System</td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="sub">6.3 Complaint Workflow Management</h3>
+    <ul>
+      <li>Assign complaints to specific agents</li>
+      <li>Update complaint status through defined transitions</li>
+      <li>Add notes/comments at each status change</li>
+      <li>Full audit trail of all status changes with timestamps</li>
+      <li>View complete complaint history timeline</li>
+    </ul>
+
+    <h3 class="sub">6.4 SLA &amp; Escalation Management</h3>
+    <ul>
+      <li>SLA deadline computed and stored when admin/supervisor sets complaint priority</li>
+      <li>Automatic escalation when SLA deadline is breached (background job)</li>
+      <li>SLA background job runs every 5 minutes</li>
+      <li>Escalation notifications sent to supervisor and admin</li>
+      <li>Escalation dashboard for supervisors to manage and reassign</li>
+    </ul>
+
+    <h3 class="sub">6.5 Complaint Resolution</h3>
+    <ul>
+      <li><strong>Only the assigned agent</strong> can mark a complaint as Resolved — admin and supervisor are blocked; other agents are also blocked</li>
+      <li>A note or uploaded attachment is required as resolution evidence before the status is accepted</li>
+      <li>Customer receives notification on resolution</li>
+      <li>Customer submits star rating feedback (1–5) after resolution</li>
+      <li>Closing rules enforced based on feedback rating:
+        <ul>
+          <li>Rating 3–5 (satisfied): agent, admin, or supervisor can close</li>
+          <li>Rating 1–2 (dissatisfied): admin/supervisor only, mandatory note required</li>
+          <li>No feedback, &lt; 7 days since resolved: closing blocked for all roles</li>
+          <li>No feedback, ≥ 7 days since resolved: admin/supervisor force-close with mandatory note</li>
+        </ul>
+      </li>
+      <li>Complaint reopen (Closed → Assigned):
+        <ul>
+          <li>Only admin or supervisor can reopen a closed complaint</li>
+          <li>Mandatory reason note required — empty note is blocked</li>
+          <li>Status returns to <strong>Assigned</strong> so admin/supervisor can reassign if needed before the agent resumes work</li>
+          <li><code>resolved_at</code> is cleared on reopen</li>
+          <li>Assigned agent is notified; the other management role (admin notifies supervisor, supervisor notifies admin) is always informed</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h3 class="sub">6.6 Notification Management</h3>
+    <ul>
+      <li>In-app notifications with 30-second polling</li>
+      <li>Unread count badge on notification bell</li>
+      <li>Mark individual or all notifications as read</li>
+      <li>Notification triggers: complaint creation, assignment, status update, escalation, resolution</li>
+    </ul>
+
+    <h3 class="sub">6.7 Dashboard &amp; Analytics</h3>
+    <ul>
+      <li>Role-specific dashboards (admin/supervisor/agent/customer views)</li>
+      <li>Complaint statistics: total, open, resolved, escalated, reopened count</li>
+      <li>SLA breach count and on-time resolution rate</li>
+      <li>Average resolution time</li>
+      <li>Agent performance table</li>
+      <li>Monthly complaint trend chart (last 6 months)</li>
+      <li>Complaints by category and priority charts</li>
+      <li>Customer satisfaction rating distribution</li>
+      <li>Cross-category assignment count in overview; breakdown by overloaded category and by agent; full override log with reason and timestamp</li>
+    </ul>
+
+    <h3 class="sub">6.8 Feedback Management</h3>
+    <ul>
+      <li>Customer submits feedback only for Resolved or Closed complaints</li>
+      <li>Star rating from 1 to 5</li>
+      <li>Optional text comments</li>
+      <li>One feedback per complaint (duplicate prevention)</li>
+      <li>Aggregate satisfaction metrics shown in Reports</li>
+    </ul>
+
+    <h3 class="sub">6.9 User Management</h3>
+    <ul>
+      <li>Admin can view all registered users</li>
+      <li>Admin can change any user's role</li>
+      <li>Admin can delete users (self-deletion blocked)</li>
+      <li>Admin cannot change their own role</li>
+    </ul>
+
+    <h3 class="sub">6.10 Agent-Category Management</h3>
+    <ul>
+      <li>Each complaint category must have at least one mapped agent at all times</li>
+      <li>Admin manages agent-to-category mappings via a dedicated management page</li>
+      <li>Admin can add an agent to a category or remove an agent from a category</li>
+      <li>Removing the last agent from a category is blocked — the system returns an error</li>
+      <li>When assigning a complaint, only agents mapped to the complaint's category appear in the dropdown</li>
+      <li>Cross-category override (admin or supervisor only):
+        <ul>
+          <li>Either role can assign an agent outside their mapped category via an explicit override action</li>
+          <li>Mandatory reason note required — empty note is blocked at both application and database level</li>
+          <li>The other management role is notified with the agent name and reason</li>
+          <li>Assigned agent receives a notification identifying the assignment as cross-category</li>
+          <li>Every override is permanently logged in <code>cross_category_assignments</code> with full audit detail</li>
+        </ul>
+      </li>
+    </ul>
+
+    <!-- 7. Non-Functional -->
+    <h2 class="section" id="s7">7. Non-Functional Requirements</h2>
+    <table>
+      <thead><tr><th>Category</th><th>Requirement</th></tr></thead>
+      <tbody>
+        <tr><td>Performance</td><td>Fast complaint search; efficient concurrent user handling; API responses under 500ms</td></tr>
+        <tr><td>Security</td><td>JWT-based authentication; bcrypt password hashing; role-based API authorization; CORS restriction</td></tr>
+        <tr><td>Reliability</td><td>Complaint data consistency; error handling on all API endpoints; graceful failure handling</td></tr>
+        <tr><td>Scalability</td><td>Modular architecture; REST API design; easily replaceable DB layer</td></tr>
+        <tr><td>Usability</td><td>Responsive UI; role-specific navigation; clear status indicators; accessible color contrast</td></tr>
+        <tr><td>Maintainability</td><td>Separated controllers/routes/middleware; seed script for demo data; migration-safe DB schema updates</td></tr>
+      </tbody>
+    </table>
+
+    <!-- 8. Categories -->
+    <h2 class="section" id="s8">8. Complaint Categories</h2>
+    <ul>
+      <li>Billing Issues</li>
+      <li>Service Disruption</li>
+      <li>Product Defects</li>
+      <li>Technical Problems</li>
+      <li>Delivery Delays</li>
+      <li>Account Issues</li>
+      <li>Customer Service Complaints</li>
+    </ul>
+
+    <!-- 9. SLA Rules -->
+    <h2 class="section" id="s9">9. SLA Rules</h2>
+    <table>
+      <thead><tr><th>Priority</th><th>Resolution Time</th><th>Auto-Escalate If Breached</th></tr></thead>
+      <tbody>
+        <tr><td>Critical</td><td>4 Hours</td><td>Yes</td></tr>
+        <tr><td>High</td><td>24 Hours</td><td>Yes</td></tr>
+        <tr><td>Medium</td><td>48 Hours</td><td>Yes</td></tr>
+        <tr><td>Low</td><td>72 Hours</td><td>Yes</td></tr>
+      </tbody>
+    </table>
+
+    <!-- 10. Workflow -->
+    <h2 class="section" id="s10">10. Complaint Workflow</h2>
+    <h3 class="sub">10.1 Status Lifecycle</h3>
+    <div style="display:flex; flex-wrap:wrap; gap:8px; margin:16px 0; align-items:center;">
+      <span style="background:#1e3c72;color:white;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;">Open</span>
+      <span style="color:#999;">→</span>
+      <span style="background:#17a2b8;color:white;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;">Assigned</span>
+      <span style="color:#999;">→</span>
+      <span style="background:#6f42c1;color:white;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;">In Progress</span>
+      <span style="color:#999;">→</span>
+      <span style="background:#fd7e14;color:white;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;">Pending Customer Response</span>
+      <span style="color:#999;">→</span>
+      <span style="background:#dc3545;color:white;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;">Escalated</span>
+      <span style="color:#999;">→</span>
+      <span style="background:#28a745;color:white;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;">Resolved</span>
+      <span style="color:#999;">→</span>
+      <span style="background:#555;color:white;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;">Closed</span>
+    </div>
+
+    <h3 class="sub">10.2 Workflow Steps</h3>
+    <table>
+      <thead><tr><th>Step</th><th>Action</th><th>Actor</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Customer submits complaint (category + description)</td><td>Customer</td></tr>
+        <tr><td>2</td><td>System auto-generates Complaint ID; status set to Open</td><td>System</td></tr>
+        <tr><td>3</td><td>Admin/Supervisor sets priority; SLA deadline computed at this point</td><td>Admin / Supervisor</td></tr>
+        <tr><td>4</td><td>Admin/Supervisor assigns complaint to agent; status → Assigned</td><td>Admin / Supervisor</td></tr>
+        <tr><td>5</td><td>Agent adds first note; status auto-advances to In Progress</td><td>Agent</td></tr>
+        <tr><td>6</td><td>Auto-escalation if SLA deadline is breached</td><td>System</td></tr>
+        <tr><td>7</td><td>Agent resolves complaint; note or attachment required as evidence</td><td>Agent</td></tr>
+        <tr><td>8</td><td>Customer submits feedback (star rating 1–5)</td><td>Customer</td></tr>
+        <tr><td>9</td><td>Complaint closed (role depends on feedback rating — see Section 6.5)</td><td>Admin / Supervisor / Agent</td></tr>
+      </tbody>
+    </table>
+
+    <!-- 11. Agent-Category Management -->
+    <h2 class="section" id="s11">11. Agent-Category Management</h2>
+    <h3 class="sub">11.1 Category Coverage Rule</h3>
+    <p>Every one of the 7 complaint categories must have at least one agent mapped to it at all times. A category with no agents cannot accept complaint assignments, which is an unacceptable service gap. The system enforces this rule at the API layer — the last agent in a category cannot be removed.</p>
+
+    <h3 class="sub">11.2 Assignment Enforcement</h3>
+    <p>When admin or supervisor assigns an agent to a complaint, only agents mapped to the complaint's category are shown in the assignment dropdown. The backend also enforces this — assigning an unmapped agent without an explicit override flag returns a 400 error.</p>
+
+    <h3 class="sub">11.3 Cross-Category Override</h3>
+    <div class="callout">Cross-category overrides are intended for exceptional situations — category agent overload, specialist unavailability, or urgent escalations. They are not routine assignments. The mandatory note, peer notification, and permanent log create the accountability needed for responsible use.</div>
+    <table>
+      <thead><tr><th>Rule</th><th>Detail</th></tr></thead>
+      <tbody>
+        <tr><td>Who can override</td><td>Admin or supervisor (either one is sufficient — joint approval is too slow for escalation scenarios)</td></tr>
+        <tr><td>Mandatory note</td><td>Required — empty note is rejected. Note must explain why the override is needed.</td></tr>
+        <tr><td>Peer notification</td><td>Admin overrides → supervisor notified. Supervisor overrides → admin notified. Ensures dual visibility without requiring dual approval.</td></tr>
+        <tr><td>Agent notification</td><td>Agent receives a distinct message identifying the assignment as cross-category so they know the complaint type may be outside their usual scope.</td></tr>
+        <tr><td>Permanent log</td><td>Every override written to <code>cross_category_assignments</code> with full detail: complaint, agent, bypassed category, assigner, reason, timestamp.</td></tr>
+        <tr><td>Reporting</td><td>Cross-assignment count shown in Reports overview; breakdown by overloaded category and by agent; full log visible to admin, supervisor, and quality team.</td></tr>
+      </tbody>
+    </table>
+
+  </div>
+  <div class="footer">CCRTS &nbsp;|&nbsp; Requirement Specification Document &nbsp;|&nbsp; Version 1.0 &nbsp;|&nbsp; Phase 1 &nbsp;|&nbsp; To save as PDF: Ctrl+P → Save as PDF</div>
+</div>
+</body>
+</html>

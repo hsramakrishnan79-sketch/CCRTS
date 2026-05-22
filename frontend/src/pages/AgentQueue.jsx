@@ -5,6 +5,19 @@ import Layout from "../components/Layout";
 
 const ALL_STATUSES = ["Open","Assigned","In Progress","Pending Customer Response","Escalated","Resolved","Closed"];
 
+// Valid next states an agent can move a complaint to from the queue.
+// Transitions requiring a note or attachment (→ Pending Customer Response, → Resolved)
+// are included — the backend will surface a clear error and the agent can use View Details.
+const AGENT_NEXT_STATES = {
+  "Open":                      [],
+  "Assigned":                  ["In Progress", "Pending Customer Response", "Escalated", "Resolved"],
+  "In Progress":               ["Pending Customer Response", "Escalated", "Resolved"],
+  "Pending Customer Response": ["In Progress", "Escalated", "Resolved"],
+  "Escalated":                 ["In Progress", "Resolved"],
+  "Resolved":                  [],
+  "Closed":                    [],
+};
+
 const STATUS_STYLE = {
   "Open":                       { background: "#e2e3e5", color: "#383d41" },
   "Assigned":                   { background: "#cce5ff", color: "#004085" },
@@ -133,14 +146,31 @@ export default function AgentQueue() {
                 </div>
 
                 {/* Right: actions */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "160px" }}>
-                  <select
-                    value={c.status}
-                    onChange={(e) => updateStatus(c.complaint_id, e.target.value)}
-                    style={{ padding: "8px", borderRadius: "8px", border: "1px solid #ddd", fontSize: "13px", cursor: "pointer" }}
-                  >
-                    {ALL_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                  </select>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "180px" }}>
+                  {(() => {
+                    const nextStates = AGENT_NEXT_STATES[c.status] ?? [];
+                    return nextStates.length > 0 ? (
+                      <>
+                        <select
+                          value=""
+                          onChange={(e) => { if (e.target.value) updateStatus(c.complaint_id, e.target.value); }}
+                          style={{ padding: "8px", borderRadius: "8px", border: "1px solid #ddd", fontSize: "13px", cursor: "pointer" }}
+                        >
+                          <option value="" disabled>Move to →</option>
+                          {nextStates.map((s) => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                        {nextStates.includes("Resolved") && (
+                          <span style={{ fontSize: "11px", color: "#888", textAlign: "center" }}>
+                            Resolving requires a note — use View Details
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <span style={{ fontSize: "12px", color: "#aaa", textAlign: "center", padding: "8px 0" }}>
+                        No transitions available
+                      </span>
+                    );
+                  })()}
                   <button
                     onClick={() => navigate(`/complaint/${c.complaint_id}`)}
                     style={{ padding: "8px", background: "#1e3c72", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "13px" }}

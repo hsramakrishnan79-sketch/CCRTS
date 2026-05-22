@@ -1,15 +1,17 @@
 const express = require("express");
 const router = express.Router();
 const { protect, requireRole } = require("../middleware/authMiddleware");
-const { getAllUsers, createUser, updateUserRole, deleteUser } = require("../controllers/userController");
+const { getAgents, getAllUsers, createUser, updateUserRole, deleteUser } = require("../controllers/userController");
 
-// All user management is admin-only
 router.use(protect);
-router.use(requireRole("admin"));
 
-router.get("/all", getAllUsers);
-router.post("/", createUser);
-router.put("/:id/role", updateUserRole);
-router.delete("/:id", deleteUser);
+// Agent list is accessible to admin and supervisor (for assignment dropdowns)
+router.get("/agents", requireRole(["admin", "supervisor"]), getAgents);
+
+// All other user management is admin-only
+router.get("/all",      requireRole("admin"), getAllUsers);
+router.post("/",        requireRole("admin"), createUser);
+router.put("/:id/role", requireRole("admin"), updateUserRole);
+router.delete("/:id",   requireRole("admin"), deleteUser);
 
 module.exports = router;

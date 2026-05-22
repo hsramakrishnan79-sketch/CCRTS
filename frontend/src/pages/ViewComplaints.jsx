@@ -4,14 +4,41 @@ import API from "../services/api";
 import Layout from "../components/Layout";
 
 const ALL_STATUSES = [
-  "Open",
-  "Assigned",
-  "In Progress",
-  "Pending Customer Response",
-  "Escalated",
-  "Resolved",
-  "Closed",
+  "Open", "Assigned", "In Progress", "Pending Customer Response",
+  "Escalated", "Resolved", "Closed",
 ];
+
+// Valid next states by role. Resolved is excluded for admin/supervisor — only the
+// assigned agent can mark a complaint Resolved (backend enforces this too).
+const NEXT_STATES = {
+  admin: {
+    "Open":                      [],
+    "Assigned":                  ["In Progress", "Pending Customer Response", "Escalated"],
+    "In Progress":               ["Pending Customer Response", "Escalated"],
+    "Pending Customer Response": ["In Progress", "Escalated"],
+    "Escalated":                 ["In Progress"],
+    "Resolved":                  ["Closed"],
+    "Closed":                    [],
+  },
+  supervisor: {
+    "Open":                      [],
+    "Assigned":                  ["In Progress", "Pending Customer Response", "Escalated"],
+    "In Progress":               ["Pending Customer Response", "Escalated"],
+    "Pending Customer Response": ["In Progress", "Escalated"],
+    "Escalated":                 ["In Progress"],
+    "Resolved":                  ["Closed"],
+    "Closed":                    [],
+  },
+  agent: {
+    "Open":                      [],
+    "Assigned":                  ["In Progress", "Pending Customer Response", "Escalated", "Resolved"],
+    "In Progress":               ["Pending Customer Response", "Escalated", "Resolved"],
+    "Pending Customer Response": ["In Progress", "Escalated", "Resolved"],
+    "Escalated":                 ["In Progress", "Resolved"],
+    "Resolved":                  [],
+    "Closed":                    [],
+  },
+};
 
 const ALL_PRIORITIES = ["Low", "Medium", "High", "Critical"];
 
@@ -34,10 +61,20 @@ const PRIORITY_STYLE = {
 
 function ViewComplaints() {
   const navigate = useNavigate();
-  const [complaints, setComplaints] = useState([]);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
+  const user = JSON.parse(localStorage.getItem("user"));
+  const canSetPriority = ["admin", "supervisor"].includes(user?.role);
+
+  const [complaints, setComplaints]       = useState([]);
+  const [agentMappings, setAgentMappings] = useState([]);
+  const [allAgents, setAllAgents]         = useState([]);
+  const [search, setSearch]               = useState("");
+  const [statusFilter, setStatusFilter]   = useState("All");
   const [priorityFilter, setPriorityFilter] = useState("All");
+
+  // Override modal state
+  const [overrideModal, setOverrideModal] = useState(null); // { complaint_id, category_id, category_name }
+  const [overrideAgentId, setOverrideAgentId] = useState("");
+  const [overrideNote, setOverrideNote]       = useState("");
 
   const fetchComplaints = async () => {
     try {
@@ -49,7 +86,46 @@ function ViewComplaints() {
     }
   };
 
-  useEffect(() => { fetchComplaints(); }, []);
+  const fetchMappings = async () => {
+    try {
+      const [mRes, aRes] = await Promise.all([
+        API.get("/agent-categories"),
+        API.get("/users/agents"),
+      ]);
+      setAgentMappings(mRes.data);
+      setAllAgents(aRes.data);
+    } catch {
+      // non-admin/supervisor roles won't have access — ignore silently
+    }
+  };
+
+  useEffect(() => {
+    fetchComplaints();
+    fetchMappings();
+  }, []);
+
+  // Returns agents mapped to a given category_id
+  const agentsForCategory = (category_id) =>
+    agentMappings.filter((m) => m.category_id === category_id)
+                 .map((m) => ({ id: m.agent_id, name: m.agent_name }));
+
+  const handleOverrideAssign = async () => {
+    if (!overrideAgentId) return alert("Select an agent");
+    if (!overrideNote.trim()) return alert("A reason is required for cross-category assignment");
+    try {
+      await API.put(`/complaints/assign/${overrideModal.complaint_id}`, {
+        assigned_to: Number(overrideAgentId),
+        cross_category: true,
+        note: overrideNote.trim(),
+      });
+      setOverrideModal(null);
+      setOverrideAgentId("");
+      setOverrideNote("");
+      fetchComplaints();
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to assign");
+    }
+  };
 
   const updateStatus = async (complaintId, status) => {
     try {
@@ -60,10 +136,20 @@ function ViewComplaints() {
     }
   };
 
-  const assignAgent = async (complaintId, assignedTo) => {
-    if (!assignedTo.trim()) return;
+  const updatePriority = async (complaintId, priority) => {
+    if (!priority) return;
     try {
-      await API.put(`/complaints/assign/${complaintId}`, { assigned_to: assignedTo });
+      await API.put(`/complaints/priority/${complaintId}`, { priority });
+      fetchComplaints();
+    } catch (error) {
+      alert(error.response?.data?.message || "Failed to update priority");
+    }
+  };
+
+  const assignAgent = async (complaintId, agentId) => {
+    if (!agentId) return;
+    try {
+      await API.put(`/complaints/assign/${complaintId}`, { assigned_to: agentId });
       fetchComplaints();
     } catch (error) {
       alert(error.response?.data?.message || "Failed to assign agent");
@@ -163,10 +249,7 @@ function ViewComplaints() {
                   return (
                     <tr
                       key={complaint.id}
-                      style={{
-                        borderBottom: "1px solid #eee",
-                        background: breached ? "#fff8f8" : "white",
-                      }}
+                      style={{ borderBottom: "1px solid #eee", background: breached ? "#fff8f8" : "white" }}
                     >
                       <td style={tdStyle}>
                         <strong>{complaint.complaint_id}</strong>
@@ -179,27 +262,52 @@ function ViewComplaints() {
 
                       <td style={tdStyle}>{complaint.category}</td>
 
-                      <td style={{ ...tdStyle, ...PRIORITY_STYLE[complaint.priority] }}>
-                        {complaint.priority}
+                      <td style={tdStyle}>
+                        {canSetPriority ? (
+                          <select
+                            value={complaint.priority ?? ""}
+                            onChange={(e) => updatePriority(complaint.complaint_id, e.target.value)}
+                            style={{
+                              padding: "6px 10px", borderRadius: "6px", border: "1px solid #ddd",
+                              fontSize: "13px", cursor: "pointer",
+                              color: PRIORITY_STYLE[complaint.priority]?.color ?? "#999",
+                              fontWeight: complaint.priority === "Critical" ? "bold" : "normal",
+                            }}
+                          >
+                            <option value="">— Set Priority —</option>
+                            {ALL_PRIORITIES.map((p) => (
+                              <option key={p} value={p}>{p}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span style={PRIORITY_STYLE[complaint.priority]}>
+                            {complaint.priority || "—"}
+                          </span>
+                        )}
                       </td>
 
                       <td style={tdStyle}>
-                        <select
-                          value={complaint.status}
-                          onChange={(e) => updateStatus(complaint.complaint_id, e.target.value)}
-                          style={{
-                            padding: "6px 10px",
-                            borderRadius: "6px",
-                            border: "none",
-                            cursor: "pointer",
-                            fontSize: "13px",
-                            ...(STATUS_STYLE[complaint.status] || {}),
-                          }}
-                        >
-                          {ALL_STATUSES.map((s) => (
-                            <option key={s} value={s}>{s}</option>
-                          ))}
-                        </select>
+                        <span style={{
+                          ...STATUS_STYLE[complaint.status],
+                          display: "inline-block", padding: "3px 10px",
+                          borderRadius: "12px", fontSize: "12px", fontWeight: 600, marginBottom: "6px",
+                        }}>
+                          {complaint.status}
+                        </span>
+                        {(() => {
+                          const nextStates = (NEXT_STATES[user?.role] ?? {})[complaint.status] ?? [];
+                          if (!nextStates.length) return null;
+                          return (
+                            <select
+                              value=""
+                              onChange={(e) => { if (e.target.value) updateStatus(complaint.complaint_id, e.target.value); }}
+                              style={{ display: "block", padding: "5px 8px", borderRadius: "6px", border: "1px solid #ddd", fontSize: "12px", cursor: "pointer", width: "100%" }}
+                            >
+                              <option value="" disabled>Move to →</option>
+                              {nextStates.map((s) => <option key={s} value={s}>{s}</option>)}
+                            </select>
+                          );
+                        })()}
                       </td>
 
                       <td style={tdStyle}>
@@ -212,13 +320,37 @@ function ViewComplaints() {
                       </td>
 
                       <td style={tdStyle}>
-                        <input
-                          type="text"
-                          placeholder="Assign agent..."
-                          defaultValue={complaint.assigned_to || ""}
-                          onBlur={(e) => assignAgent(complaint.complaint_id, e.target.value)}
-                          style={{ padding: "7px", borderRadius: "6px", border: "1px solid #ddd", width: "130px" }}
-                        />
+                        {canSetPriority ? (() => {
+                          const eligible = agentsForCategory(complaint.category_id);
+                          return (
+                            <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                              <select
+                                value={complaint.assigned_to ?? ""}
+                                onChange={(e) => assignAgent(complaint.complaint_id, e.target.value)}
+                                style={{ padding: "7px", borderRadius: "6px", border: "1px solid #ddd", width: "150px", fontSize: "13px" }}
+                              >
+                                <option value="">— Unassigned —</option>
+                                {eligible.map((a) => (
+                                  <option key={a.id} value={a.id}>{a.name}</option>
+                                ))}
+                              </select>
+                              <button
+                                onClick={() => setOverrideModal({
+                                  complaint_id: complaint.complaint_id,
+                                  category_id: complaint.category_id,
+                                  category_name: complaint.category,
+                                })}
+                                style={{ fontSize: "11px", color: "#dc3545", background: "none", border: "1px dashed #dc3545", borderRadius: "5px", padding: "3px 6px", cursor: "pointer" }}
+                              >
+                                Override
+                              </button>
+                            </div>
+                          );
+                        })() : (
+                          <span style={{ color: "#666", fontSize: "13px" }}>
+                            {complaint.assigned_to_name || "Unassigned"}
+                          </span>
+                        )}
                       </td>
 
                       <td style={tdStyle}>
@@ -245,11 +377,61 @@ function ViewComplaints() {
           </table>
         </div>
       </div>
+      {/* ── Cross-category override modal ──────────────────────────────── */}
+      {overrideModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+          <div style={{ background: "white", borderRadius: "14px", padding: "28px", width: "460px", boxShadow: "0 8px 30px rgba(0,0,0,0.2)" }}>
+            <h3 style={{ margin: "0 0 6px", color: "#dc3545" }}>Cross-Category Assignment Override</h3>
+            <p style={{ color: "#888", fontSize: "13px", marginBottom: "16px" }}>
+              Complaint <strong>{overrideModal.complaint_id}</strong> is in category <strong>{overrideModal.category_name}</strong>.
+              You are assigning an agent outside this category. Both admin and supervisor are notified. A reason is mandatory.
+            </p>
+
+            <label style={labelStyle}>Select Agent (all agents)</label>
+            <select
+              value={overrideAgentId}
+              onChange={(e) => setOverrideAgentId(e.target.value)}
+              style={inputStyle}
+            >
+              <option value="">— Select agent —</option>
+              {allAgents.map((a) => (
+                <option key={a.id} value={a.id}>{a.name}</option>
+              ))}
+            </select>
+
+            <label style={labelStyle}>Reason for Override (mandatory)</label>
+            <textarea
+              value={overrideNote}
+              onChange={(e) => setOverrideNote(e.target.value)}
+              placeholder="Explain why this cross-category assignment is necessary (e.g., category agent overloaded, specialist unavailable)..."
+              rows={3}
+              style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit" }}
+            />
+
+            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "18px" }}>
+              <button
+                onClick={() => { setOverrideModal(null); setOverrideAgentId(""); setOverrideNote(""); }}
+                style={{ padding: "9px 18px", borderRadius: "8px", border: "1px solid #ddd", background: "white", cursor: "pointer", fontSize: "14px" }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleOverrideAssign}
+                style={{ padding: "9px 18px", borderRadius: "8px", border: "none", background: "#dc3545", color: "white", cursor: "pointer", fontSize: "14px", fontWeight: 600 }}
+              >
+                Confirm Override
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }
 
 const thStyle = { padding: "14px 16px", textAlign: "left", fontWeight: 600 };
 const tdStyle = { padding: "14px 16px" };
+const labelStyle = { display: "block", fontSize: "13px", fontWeight: 600, color: "#555", marginBottom: "6px" };
+const inputStyle = { width: "100%", padding: "9px 12px", borderRadius: "8px", border: "1px solid #ddd", fontSize: "14px", boxSizing: "border-box", marginBottom: "14px" };
 
 export default ViewComplaints;

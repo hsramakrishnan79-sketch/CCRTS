@@ -78,7 +78,7 @@ export default function Reports() {
   if (loading) return <Layout><p style={{ color: "#888", padding: "20px" }}>Loading reports…</p></Layout>;
   if (!data)   return <Layout><p style={{ color: "#c00", padding: "20px" }}>Failed to load reports.</p></Layout>;
 
-  const { overview, byCategory, byPriority, byMonth, agentPerformance, satisfaction } = data;
+  const { overview, byCategory, byPriority, byMonth, agentPerformance, satisfaction, crossAssignments } = data;
   const maxCategory = Math.max(...byCategory.map((c) => c.count), 1);
 
   const slaRate = overview.slaCompliance?.totalResolved > 0
@@ -99,6 +99,7 @@ export default function Reports() {
           { label: "Avg Resolution",       value: overview.avgResolutionHours != null ? `${overview.avgResolutionHours}h` : "—", color: "#6f42c1" },
           { label: "Active SLA Breaches",  value: overview.activeSlaBreaches,      color: overview.activeSlaBreaches > 0 ? "#dc3545" : "#28a745" },
           { label: "SLA On-Time Rate",     value: slaRate != null ? `${slaRate}%` : "—", color: slaRate >= 80 ? "#28a745" : "#fd7e14" },
+          { label: "Cross-Assignments",    value: crossAssignments?.total ?? 0,    color: crossAssignments?.total > 0 ? "#fd7e14" : "#28a745" },
         ].map((c) => (
           <div key={c.label} style={{ background: "white", borderRadius: "12px", padding: "20px", boxShadow: "0 2px 10px rgba(0,0,0,0.07)", textAlign: "center" }}>
             <h1 style={{ margin: "0 0 6px", fontSize: "30px", color: c.color }}>{c.value ?? "—"}</h1>
@@ -216,6 +217,59 @@ export default function Reports() {
               })}
             </div>
           </div>
+        )}
+      </Card>
+
+      {/* ── Cross-Category Assignments ───────────────────────────────────── */}
+      <Card title="Cross-Category Assignment Overrides">
+        {!crossAssignments || crossAssignments.total === 0 ? (
+          <p style={{ color: "#28a745", fontSize: "14px" }}>No cross-category assignments recorded.</p>
+        ) : (
+          <>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginBottom: "24px" }}>
+              <div>
+                <p style={{ fontWeight: 600, color: "#555", fontSize: "13px", marginBottom: "10px" }}>By Overloaded Category</p>
+                {crossAssignments.byCategory.map((c) => (
+                  <HBar key={c.category} label={c.category} count={c.count}
+                    max={Math.max(...crossAssignments.byCategory.map((x) => x.count), 1)}
+                    color="#fd7e14" />
+                ))}
+              </div>
+              <div>
+                <p style={{ fontWeight: 600, color: "#555", fontSize: "13px", marginBottom: "10px" }}>By Cross-Assigned Agent</p>
+                {crossAssignments.byAgent.map((a) => (
+                  <HBar key={a.agent} label={a.agent} count={a.count}
+                    max={Math.max(...crossAssignments.byAgent.map((x) => x.count), 1)}
+                    color="#6f42c1" />
+                ))}
+              </div>
+            </div>
+
+            <p style={{ fontWeight: 600, color: "#555", fontSize: "13px", marginBottom: "10px" }}>Recent Override Log</p>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+                <thead>
+                  <tr style={{ background: "#f8f9fa" }}>
+                    {["Date", "Complaint", "Category", "Agent", "Assigned By", "Reason"].map((h) => (
+                      <th key={h} style={{ padding: "9px 12px", textAlign: "left", fontWeight: 600, color: "#555", whiteSpace: "nowrap" }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {crossAssignments.recent.map((r, i) => (
+                    <tr key={i} style={{ borderBottom: "1px solid #f0f0f0" }}>
+                      <td style={td}>{new Date(r.assigned_at).toLocaleDateString()}</td>
+                      <td style={{ ...td, fontWeight: 600, color: "#1e3c72" }}>{r.complaint_id}</td>
+                      <td style={td}>{r.complaint_category}</td>
+                      <td style={td}>{r.agent}</td>
+                      <td style={td}>{r.assigned_by}</td>
+                      <td style={{ ...td, color: "#555", maxWidth: "220px" }}>{r.note}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </Card>
 

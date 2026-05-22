@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   FaHome, FaClipboardList, FaPlusCircle, FaUsers,
-  FaExclamationTriangle, FaInbox, FaSignOutAlt, FaChartBar,
+  FaExclamationTriangle, FaInbox, FaSignOutAlt, FaChartBar, FaUserCog,
 } from "react-icons/fa";
 import NotificationBell from "./NotificationBell";
 
@@ -13,7 +13,8 @@ const NAV = {
     { label: "All Complaints",   path: "/view-complaints",  icon: <FaClipboardList /> },
     { label: "Escalations",      path: "/escalation",       icon: <FaExclamationTriangle /> },
     { label: "Reports",          path: "/reports",          icon: <FaChartBar /> },
-    { label: "User Management",  path: "/admin/users",      icon: <FaUsers /> },
+    { label: "User Management",  path: "/admin/users",             icon: <FaUsers /> },
+    { label: "Agent Categories", path: "/admin/agent-categories",  icon: <FaUserCog /> },
   ],
   supervisor: [
     { label: "Dashboard",      path: "/dashboard",      icon: <FaHome /> },
@@ -29,6 +30,7 @@ const NAV = {
   ],
   customer: [
     { label: "Dashboard",        path: "/dashboard",        icon: <FaHome /> },
+    { label: "My Complaints",    path: "/my-complaints",    icon: <FaClipboardList /> },
     { label: "Submit Complaint", path: "/create-complaint", icon: <FaPlusCircle /> },
   ],
   quality: [
