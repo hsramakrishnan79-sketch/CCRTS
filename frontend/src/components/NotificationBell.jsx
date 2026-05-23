@@ -9,7 +9,6 @@ export default function NotificationBell() {
   const [count, setCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
   const [open, setOpen] = useState(false);
-  const [dropBottom, setDropBottom] = useState(0);
   const panelRef  = useRef(null);
   const buttonRef = useRef(null);
 
@@ -45,11 +44,13 @@ export default function NotificationBell() {
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
+  const [dropPos, setDropPos] = useState({ top: 0, right: 0 });
+
   const handleOpen = () => {
     if (!open) {
       fetchList();
       const rect = buttonRef.current.getBoundingClientRect();
-      setDropBottom(window.innerHeight - rect.top + 6);
+      setDropPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
     }
     setOpen((v) => !v);
   };
@@ -88,35 +89,35 @@ export default function NotificationBell() {
   };
 
   return (
-    <div ref={panelRef} style={{ position: "relative", marginBottom: "6px" }}>
-      {/* Bell button */}
+    <div ref={panelRef} style={{ position: "relative" }}>
+      {/* Bell button — compact icon with badge overlay */}
       <button
         ref={buttonRef}
         onClick={handleOpen}
         title="Notifications"
         style={{
-          width: "100%", padding: "11px 14px", border: "none", borderRadius: "8px",
-          background: open ? "rgba(255,255,255,0.18)" : "transparent",
-          color: "white", display: "flex", alignItems: "center", gap: "10px",
-          cursor: "pointer", fontSize: "14px", position: "relative",
+          position: "relative", padding: "6px 8px", border: "none", borderRadius: "8px",
+          background: open ? "#f0f4ff" : "transparent",
+          cursor: "pointer", fontSize: "20px", lineHeight: 1, display: "flex",
         }}
       >
-        <span style={{ fontSize: "16px" }}>🔔</span>
-        Notifications
+        🔔
         {count > 0 && (
           <span style={{
-            marginLeft: "auto", background: "#dc3545", color: "white",
-            borderRadius: "10px", padding: "1px 7px", fontSize: "11px", fontWeight: 700,
+            position: "absolute", top: "0", right: "0",
+            background: "#dc3545", color: "white",
+            borderRadius: "10px", padding: "1px 5px", fontSize: "10px", fontWeight: 700,
+            minWidth: "16px", textAlign: "center", lineHeight: "16px",
           }}>
             {count > 99 ? "99+" : count}
           </span>
         )}
       </button>
 
-      {/* Dropdown panel — positioned to the right of the sidebar */}
+      {/* Dropdown panel — positioned below the button */}
       {open && (
         <div style={{
-          position: "fixed", left: "214px", bottom: dropBottom,
+          position: "fixed", top: dropPos.top, right: dropPos.right,
           width: "340px", maxHeight: "460px",
           background: "white", borderRadius: "12px",
           boxShadow: "0 8px 30px rgba(0,0,0,0.18)",

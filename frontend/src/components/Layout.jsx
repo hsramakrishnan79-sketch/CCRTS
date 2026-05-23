@@ -8,6 +8,29 @@ import {
 import NotificationBell from "./NotificationBell";
 import { SCORE_COLOR } from "../utils/styleHelpers";
 
+const ROLE_COLOR = {
+  admin:      "#1e3c72",
+  supervisor: "#6f42c1",
+  agent:      "#28a745",
+  customer:   "#fd7e14",
+  quality:    "#17a2b8",
+};
+
+const PAGE_TITLES = {
+  "/dashboard":               "Dashboard",
+  "/view-complaints":         "All Complaints",
+  "/admin/assignment-queue":  "Assignment Queue",
+  "/admin/status-queue":      "Status Queue",
+  "/escalation":              "Escalation Dashboard",
+  "/sla-breached":            "SLA Breached",
+  "/admin/users":             "User Management",
+  "/admin/agent-categories":  "Agent Categories",
+  "/reports":                 "Reports",
+  "/agent-queue":             "My Queue",
+  "/create-complaint":        "Submit Complaint",
+  "/my-complaints":           "My Complaints",
+};
+
 // Nav items per role
 const NAV = {
   admin: [
@@ -71,88 +94,114 @@ function Layout({ children }) {
     navigate("/");
   };
 
+  const pageTitle = location.pathname.startsWith("/complaint/")
+    ? "Complaint Detail"
+    : PAGE_TITLES[location.pathname] ?? "CCRTS";
+
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#f4f6f9" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "#f4f6f9" }}>
 
-      {/* ── Sidebar ─────────────────────────────────────────────────────── */}
-      <div style={{
-        width: "200px", background: "#1e3c72", color: "white",
-        padding: "20px 14px", display: "flex", flexDirection: "column", flexShrink: 0,
-        height: "100vh", position: "sticky", top: 0, overflowY: "auto",
+      {/* ── Top header ──────────────────────────────────────────────────── */}
+      <header style={{
+        height: "56px", background: "white", borderBottom: "1px solid #e9ecef",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "0 24px", flexShrink: 0, zIndex: 10,
+        boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
       }}>
-        <h2 style={{ textAlign: "center", marginBottom: "4px", fontSize: "20px", letterSpacing: "1px" }}>CCRTS</h2>
-        <p style={{ textAlign: "center", fontSize: "11px", opacity: 0.6, marginBottom: "28px", textTransform: "uppercase" }}>
-          {role}
-        </p>
-
-        {/* Nav links */}
-        <nav style={{ flex: 1 }}>
-          {navItems.map((item, idx) => {
-            if (item.groupLabel) {
-              return (
-                <div key={idx} style={{
-                  fontSize: "10px", fontWeight: 700, letterSpacing: "1.2px",
-                  textTransform: "uppercase", opacity: 0.45,
-                  padding: "14px 12px 4px",
-                }}>
-                  {item.groupLabel}
-                </div>
-              );
-            }
-            const active = (location.pathname + location.search) === item.path || location.pathname === item.path;
-            return (
-              <button
-                key={item.path}
-                onClick={() => navigate(item.path)}
-                className={`nav-btn${active ? " active" : ""}`}
-                style={item.indented ? { paddingLeft: "22px" } : undefined}
-              >
-                <span style={{ opacity: 0.85 }}>{item.icon}</span>
-                {item.label}
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Notification bell */}
-        <div style={{ borderTop: "1px solid rgba(255,255,255,0.15)", paddingTop: "14px", marginTop: "14px" }}>
-          <NotificationBell />
+        {/* Left: page title + role badge */}
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <span style={{ fontSize: "16px", fontWeight: 700, color: "#1e3c72" }}>{pageTitle}</span>
+          <span style={{
+            background: ROLE_COLOR[role] ?? "#1e3c72", color: "white",
+            fontSize: "11px", fontWeight: 700, padding: "2px 10px",
+            borderRadius: "12px", textTransform: "capitalize", letterSpacing: "0.5px",
+          }}>
+            {role}
+          </span>
         </div>
 
-        {/* User info + logout */}
-        <div style={{ borderTop: "1px solid rgba(255,255,255,0.15)", paddingTop: "14px", marginTop: "8px" }}>
+        {/* Right: agent score + notifications + username + logout */}
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
           {agentScore !== null && (
-            <div style={{ textAlign: "center", marginBottom: "12px" }}>
-              <div style={{
-                display: "inline-flex", flexDirection: "column", alignItems: "center",
-                background: "rgba(255,255,255,0.08)", borderRadius: "10px", padding: "8px 16px",
-                border: `2px solid ${SCORE_COLOR(agentScore.score)}`,
-              }}>
-                <span style={{ fontSize: "22px", fontWeight: 800, color: SCORE_COLOR(agentScore.score), lineHeight: 1 }}>
-                  {agentScore.score}
-                </span>
-                <span style={{ fontSize: "9px", opacity: 0.6, marginTop: "2px", letterSpacing: "0.5px", textTransform: "uppercase" }}>
-                  Performance Score
-                </span>
-                <span style={{ fontSize: "9px", opacity: 0.45, marginTop: "1px" }}>
-                  {agentScore.period}
-                </span>
-              </div>
+            <div style={{
+              display: "flex", flexDirection: "column", alignItems: "center",
+              border: `2px solid ${SCORE_COLOR(agentScore.score)}`,
+              borderRadius: "8px", padding: "2px 10px", lineHeight: 1.2,
+            }}>
+              <span style={{ fontSize: "15px", fontWeight: 800, color: SCORE_COLOR(agentScore.score) }}>
+                {agentScore.score}
+              </span>
+              <span style={{ fontSize: "9px", color: "#aaa", textTransform: "uppercase", letterSpacing: "0.4px" }}>
+                Score
+              </span>
             </div>
           )}
-          <div style={{ textAlign: "center", marginBottom: "10px", fontSize: "13px", opacity: 0.85 }}>
-            <strong>{user?.name}</strong>
-            <div style={{ fontSize: "11px", opacity: 0.7, marginTop: "3px" }}>{user?.email}</div>
+
+          <NotificationBell />
+
+          <div style={{ fontSize: "13px", color: "#333", lineHeight: 1.3 }}>
+            <div style={{ fontWeight: 600 }}>{user?.name}</div>
+            <div style={{ fontSize: "11px", color: "#aaa" }}>{user?.email}</div>
           </div>
-          <button onClick={handleLogout} className="nav-btn" style={{ background: "rgba(220,53,69,0.75)" }}>
+
+          <button
+            onClick={handleLogout}
+            style={{
+              display: "flex", alignItems: "center", gap: "6px",
+              background: "#dc3545", color: "white", border: "none",
+              borderRadius: "6px", padding: "7px 14px", cursor: "pointer",
+              fontSize: "13px", fontWeight: 600,
+            }}
+          >
             <FaSignOutAlt /> Logout
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* ── Page content ────────────────────────────────────────────────── */}
-      <div style={{ flex: 1, padding: "28px 24px", overflowY: "auto", minWidth: 0 }}>
-        {children}
+      {/* ── Body: sidebar + content ─────────────────────────────────────── */}
+      <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+
+        {/* Sidebar — nav only, no scrollbar needed */}
+        <div style={{
+          width: "200px", background: "#1e3c72", color: "white",
+          padding: "20px 14px", display: "flex", flexDirection: "column",
+          flexShrink: 0, overflowY: "auto",
+        }}>
+          <h2 style={{ textAlign: "center", marginBottom: "20px", fontSize: "20px", letterSpacing: "1px" }}>CCRTS</h2>
+
+          <nav>
+            {navItems.map((item, idx) => {
+              if (item.groupLabel) {
+                return (
+                  <div key={idx} style={{
+                    fontSize: "10px", fontWeight: 700, letterSpacing: "1.2px",
+                    textTransform: "uppercase", opacity: 0.45,
+                    padding: "14px 12px 4px",
+                  }}>
+                    {item.groupLabel}
+                  </div>
+                );
+              }
+              const active = (location.pathname + location.search) === item.path || location.pathname === item.path;
+              return (
+                <button
+                  key={item.path}
+                  onClick={() => navigate(item.path)}
+                  className={`nav-btn${active ? " active" : ""}`}
+                  style={item.indented ? { paddingLeft: "22px" } : undefined}
+                >
+                  <span style={{ opacity: 0.85 }}>{item.icon}</span>
+                  {item.label}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Page content */}
+        <div style={{ flex: 1, padding: "28px 24px", overflowY: "auto", minWidth: 0 }}>
+          {children}
+        </div>
       </div>
     </div>
   );

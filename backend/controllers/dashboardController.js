@@ -40,6 +40,7 @@ const getAdminDashboard = (req, res) => {
       SELECT COALESCE(cat.category_name, 'Uncategorised') AS category, COUNT(*) AS count
       FROM complaints c
       LEFT JOIN categories cat ON cat.id = c.category_id
+      WHERE c.created_at >= date('now', '-12 months')
       GROUP BY c.category_id
       ORDER BY count DESC
     `).all();

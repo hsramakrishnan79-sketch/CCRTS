@@ -154,7 +154,7 @@ function AdminDashboard({ user }) {
           {/* Monthly trend */}
           <div className="card mb-24">
             <h3 className="text-primary" style={{ fontSize: "15px", fontWeight: 700, borderBottom: "2px solid #f0f0f0", paddingBottom: "10px", marginBottom: "20px" }}>
-              Monthly Complaint Volume (Last 12 Months)
+              Monthly Complaint Volume — Last 12 Months
             </h3>
             {data?.monthlyTrend?.length > 0
               ? <VBars data={data.monthlyTrend} keyX="month" keyY="total" color="#1e3c72" height={150} />
@@ -164,7 +164,7 @@ function AdminDashboard({ user }) {
           {/* By category */}
           <div className="card mb-24">
             <h3 className="text-primary" style={{ fontSize: "15px", fontWeight: 700, borderBottom: "2px solid #f0f0f0", paddingBottom: "10px", marginBottom: "20px" }}>
-              Complaints by Category
+              Complaints by Category — Last 12 Months
             </h3>
             {(data?.byCategory ?? []).map((c) => (
               <HBar key={c.category} label={c.category} count={c.count} max={Math.max(...(data?.byCategory ?? []).map((x) => x.count), 1)} />
