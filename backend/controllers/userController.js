@@ -111,4 +111,51 @@ const deleteUser = (req, res) => {
   }
 };
 
-module.exports = { getAgents, getAllUsers, createUser, updateUserRole, deleteUser };
+// GET /api/users/my-score — agent's own rolling 30-day performance score
+const getMyScore = (req, res) => {
+  try {
+    const agentId = req.user.id;
+
+    const row = db.prepare(`
+      SELECT
+        COUNT(DISTINCT c.id)                                              AS totalHandled,
+        ROUND(AVG(f.rating), 1)                                           AS avgRating,
+        SUM(CASE WHEN c.resolved_at IS NOT NULL AND c.sla_deadline IS NOT NULL
+                  AND c.resolved_at <= c.sla_deadline THEN 1 ELSE 0 END) AS onTime,
+        SUM(CASE WHEN c.resolved_at IS NOT NULL
+                  AND c.sla_deadline IS NOT NULL THEN 1 ELSE 0 END)      AS totalResolved
+      FROM complaints c
+      LEFT JOIN feedback f ON f.complaint_id = c.complaint_id
+      WHERE c.assigned_to = ?
+        AND c.created_at >= date('now', '-30 days')
+    `).get(agentId);
+
+    const reopened = db.prepare(`
+      SELECT COUNT(DISTINCT ch.complaint_id) AS count
+      FROM complaint_history ch
+      JOIN complaints c ON c.complaint_id = ch.complaint_id
+      WHERE ch.old_status = 'Closed' AND ch.new_status = 'Assigned'
+        AND c.assigned_to = ?
+        AND ch.changed_at >= date('now', '-30 days')
+    `).get(agentId).count;
+
+    const slaCompliance = row.totalResolved > 0
+      ? Math.round((row.onTime / row.totalResolved) * 100) : null;
+    const ratingScore = row.avgRating   != null ? (row.avgRating   / 5)   * 50 : 25;
+    const slaScore    = slaCompliance   != null ? (slaCompliance   / 100) * 30 : 15;
+    const reopenRate  = row.totalHandled > 0    ? reopened / row.totalHandled  : 0;
+    const reopenScore = (1 - Math.min(reopenRate, 1)) * 20;
+    const score       = Math.round(ratingScore + slaScore + reopenScore);
+
+    res.json({
+      score,
+      breakdown: { avgRating: row.avgRating, slaCompliance, reopened, totalHandled: row.totalHandled },
+      period: "Last 30 Days",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+module.exports = { getAgents, getAllUsers, createUser, updateUserRole, deleteUser, getMyScore };

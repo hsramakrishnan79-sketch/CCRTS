@@ -1,48 +1,45 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import API from "../services/api";
 import Layout from "../components/Layout";
+import { useToast } from "../context/ToastContext";
+import { statusClass, priorityClass, isSlaBreached } from "../utils/styleHelpers";
+import ComplaintSidePanel from "../components/ComplaintSidePanel";
+import RowActionsMenu from "../components/RowActionsMenu";
+import Pagination from "../components/Pagination";
+
+const PAGE_SIZE = 10;
 
 const ALL_STATUSES = ["Open","Assigned","In Progress","Pending Customer Response","Escalated","Resolved","Closed"];
+const ACTIVE_STATUSES = ["Assigned", "In Progress", "Pending Customer Response", "Escalated"];
 
-// Valid next states an agent can move a complaint to from the queue.
-// Transitions requiring a note or attachment (→ Pending Customer Response, → Resolved)
-// are included — the backend will surface a clear error and the agent can use View Details.
 const AGENT_NEXT_STATES = {
   "Open":                      [],
   "Assigned":                  ["In Progress", "Pending Customer Response", "Escalated", "Resolved"],
   "In Progress":               ["Pending Customer Response", "Escalated", "Resolved"],
   "Pending Customer Response": ["In Progress", "Escalated", "Resolved"],
-  "Escalated":                 ["In Progress", "Resolved"],
-  "Resolved":                  [],
+  "Escalated":                 [],
+  "Resolved":                  ["Closed"],
   "Closed":                    [],
 };
 
-const STATUS_STYLE = {
-  "Open":                       { background: "#e2e3e5", color: "#383d41" },
-  "Assigned":                   { background: "#cce5ff", color: "#004085" },
-  "In Progress":                { background: "#d1ecf1", color: "#0c5460" },
-  "Pending Customer Response":  { background: "#fff3cd", color: "#856404" },
-  "Escalated":                  { background: "#f8d7da", color: "#721c24" },
-  "Resolved":                   { background: "#d4edda", color: "#155724" },
-  "Closed":                     { background: "#d6d8d9", color: "#1b1e21" },
-};
-
-const PRIORITY_COLOR = { Low: "#28a745", Medium: "#ffc107", High: "#fd7e14", Critical: "#dc3545" };
+const PRIORITY_BORDER = { Low: "#28a745", Medium: "#ffc107", High: "#fd7e14", Critical: "#dc3545" };
 
 export default function AgentQueue() {
-  const navigate = useNavigate();
-  const [complaints, setComplaints] = useState([]);
-  const [statusFilter, setStatusFilter] = useState("Active");
-  const [loading, setLoading] = useState(true);
+  const showToast = useToast();
+
+  const [complaints, setComplaints]               = useState([]);
+  const [statusFilter, setStatusFilter]           = useState("Active");
+  const [loading, setLoading]                     = useState(true);
+  const [selectedComplaint, setSelectedComplaint] = useState(null);
+  const [panelReadOnly, setPanelReadOnly]         = useState(false);
+  const [page, setPage]                           = useState(1);
 
   const fetchQueue = async () => {
     try {
       const res = await API.get("/complaints/my-queue");
       setComplaints(res.data);
     } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.message || "Failed to load queue");
+      showToast(err.response?.data?.message || "Failed to load queue.", "error");
     } finally {
       setLoading(false);
     }
@@ -50,16 +47,18 @@ export default function AgentQueue() {
 
   useEffect(() => { fetchQueue(); }, []);
 
-  const updateStatus = async (complaint_id, status) => {
+  const handleUpdate = async () => {
     try {
-      await API.put(`/complaints/update-status/${complaint_id}`, { status });
-      fetchQueue();
-    } catch (err) {
-      alert(err.response?.data?.message || "Failed to update status");
+      const res = await API.get("/complaints/my-queue");
+      setComplaints(res.data);
+      if (selectedComplaint) {
+        const updated = res.data.find((c) => c.complaint_id === selectedComplaint.complaint_id);
+        updated ? setSelectedComplaint(updated) : setSelectedComplaint(null);
+      }
+    } catch {
+      showToast("Failed to refresh.", "error");
     }
   };
-
-  const ACTIVE_STATUSES = ["Assigned", "In Progress", "Pending Customer Response", "Escalated"];
 
   const filtered = complaints.filter((c) => {
     if (statusFilter === "Active") return ACTIVE_STATUSES.includes(c.status);
@@ -67,26 +66,20 @@ export default function AgentQueue() {
     return c.status === statusFilter;
   });
 
-  const slaBreached = (c) =>
-    c.sla_deadline &&
-    !["Resolved","Closed"].includes(c.status) &&
-    new Date(c.sla_deadline) < new Date();
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <Layout>
-      <h1 style={{ marginBottom: "4px", color: "#1e3c72" }}>My Work Queue</h1>
-      <p style={{ color: "#888", marginBottom: "24px" }}>
-        Complaints assigned to you — {complaints.length} total
-      </p>
+      <h1 className="page-title">My Work Queue</h1>
+      <p className="page-subtitle">Complaints assigned to you — {complaints.length} total</p>
 
-      {/* Filters */}
-      <div style={{ display: "flex", gap: "10px", marginBottom: "20px", flexWrap: "wrap" }}>
+      <div className="filters-row">
         {["Active", "All", ...ALL_STATUSES].map((f) => (
           <button
             key={f}
-            onClick={() => setStatusFilter(f)}
+            onClick={() => { setStatusFilter(f); setPage(1); }}
             style={{
-              padding: "8px 16px", borderRadius: "20px", border: "none", cursor: "pointer", fontSize: "13px",
+              padding: "7px 14px", borderRadius: "20px", border: "none", fontSize: "12px",
               background: statusFilter === f ? "#1e3c72" : "#e9ecef",
               color: statusFilter === f ? "white" : "#555",
               fontWeight: statusFilter === f ? 700 : 400,
@@ -98,90 +91,67 @@ export default function AgentQueue() {
       </div>
 
       {loading ? (
-        <p style={{ color: "#888" }}>Loading...</p>
+        <p className="text-muted">Loading...</p>
       ) : filtered.length === 0 ? (
-        <div style={{ background: "white", borderRadius: "12px", padding: "60px", textAlign: "center", color: "#aaa", boxShadow: "0 2px 10px rgba(0,0,0,0.07)" }}>
-          No complaints in this view.
-        </div>
+        <div className="empty-state">No complaints in this view.</div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          {filtered.map((c) => {
-            const breached = slaBreached(c);
+        <>
+        <div className="flex-col">
+          {paginated.map((c) => {
+            const breached = isSlaBreached(c);
             return (
               <div
                 key={c.id}
+                className="complaint-card"
                 style={{
-                  background: "white", borderRadius: "12px", padding: "20px 24px",
-                  boxShadow: "0 2px 10px rgba(0,0,0,0.07)",
-                  borderLeft: `4px solid ${PRIORITY_COLOR[c.priority] || "#ccc"}`,
+                  borderLeft: `4px solid ${PRIORITY_BORDER[c.priority] || "#ccc"}`,
                   display: "grid", gridTemplateColumns: "1fr auto", gap: "16px", alignItems: "center",
+                  background: selectedComplaint?.complaint_id === c.complaint_id ? "#eef4ff" : undefined,
                 }}
               >
                 {/* Left: info */}
                 <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
-                    <strong style={{ fontSize: "15px", color: "#1e3c72" }}>{c.complaint_id}</strong>
-                    <span style={{ ...STATUS_STYLE[c.status], padding: "2px 10px", borderRadius: "12px", fontSize: "12px", fontWeight: 600 }}>
-                      {c.status}
-                    </span>
-                    <span style={{ color: PRIORITY_COLOR[c.priority], fontSize: "12px", fontWeight: 600 }}>
-                      {c.priority}
-                    </span>
-                    {breached && (
-                      <span style={{ background: "#f8d7da", color: "#721c24", padding: "2px 8px", borderRadius: "12px", fontSize: "11px" }}>
-                        ⚠ SLA Breached
-                      </span>
-                    )}
+                  <div className="flex-row mb-8">
+                    <strong className="text-primary" style={{ fontSize: "15px" }}>{c.complaint_id}</strong>
+                    <span className={statusClass(c.status)}>{c.status}</span>
+                    <span className={priorityClass(c.priority)}>{c.priority}</span>
+                    {breached && <span className="badge status-sla-breach badge-sm">⚠ SLA Breached</span>}
                   </div>
-                  <div style={{ fontSize: "14px", color: "#555", marginBottom: "4px" }}>
+                  <div className="text-sm mb-4" style={{ color: "#555" }}>
                     <strong>{c.customer_name}</strong> · {c.category}
                   </div>
-                  <div style={{ fontSize: "13px", color: "#888", marginBottom: "8px" }}>
+                  <div className="text-muted text-sm mb-8">
                     {c.description?.slice(0, 120)}{c.description?.length > 120 ? "…" : ""}
                   </div>
-                  <div style={{ fontSize: "12px", color: breached ? "#dc3545" : "#aaa" }}>
+                  <div className="text-xs" style={{ color: breached ? "#dc3545" : "#aaa" }}>
                     SLA: {c.sla_deadline ? new Date(c.sla_deadline).toLocaleString() : "—"}
                     &nbsp;·&nbsp;Created: {c.created_at ? new Date(c.created_at).toLocaleString() : "—"}
                   </div>
                 </div>
 
-                {/* Right: actions */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "180px" }}>
-                  {(() => {
-                    const nextStates = AGENT_NEXT_STATES[c.status] ?? [];
-                    return nextStates.length > 0 ? (
-                      <>
-                        <select
-                          value=""
-                          onChange={(e) => { if (e.target.value) updateStatus(c.complaint_id, e.target.value); }}
-                          style={{ padding: "8px", borderRadius: "8px", border: "1px solid #ddd", fontSize: "13px", cursor: "pointer" }}
-                        >
-                          <option value="" disabled>Move to →</option>
-                          {nextStates.map((s) => <option key={s} value={s}>{s}</option>)}
-                        </select>
-                        {nextStates.includes("Resolved") && (
-                          <span style={{ fontSize: "11px", color: "#888", textAlign: "center" }}>
-                            Resolving requires a note — use View Details
-                          </span>
-                        )}
-                      </>
-                    ) : (
-                      <span style={{ fontSize: "12px", color: "#aaa", textAlign: "center", padding: "8px 0" }}>
-                        No transitions available
-                      </span>
-                    );
-                  })()}
-                  <button
-                    onClick={() => navigate(`/complaint/${c.complaint_id}`)}
-                    style={{ padding: "8px", background: "#1e3c72", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "13px" }}
-                  >
-                    View Details
-                  </button>
-                </div>
+                {/* Right: actions menu */}
+                <RowActionsMenu actions={[
+                  { label: "👁 View", color: "#1e3c72", onClick: () => { setSelectedComplaint(c); setPanelReadOnly(true); } },
+                  { label: "✎ Edit", color: "#555",    onClick: () => { setSelectedComplaint(c); setPanelReadOnly(false); } },
+                ]} />
               </div>
             );
           })}
         </div>
+        <Pagination total={filtered.length} page={page} pageSize={PAGE_SIZE} onPageChange={setPage} />
+        </>
+      )}
+
+      {selectedComplaint && (
+        <ComplaintSidePanel
+          complaint={selectedComplaint}
+          agentMappings={[]}
+          allAgents={[]}
+          transitions={AGENT_NEXT_STATES}
+          readOnly={panelReadOnly}
+          onClose={() => setSelectedComplaint(null)}
+          onUpdate={handleUpdate}
+        />
       )}
     </Layout>
   );

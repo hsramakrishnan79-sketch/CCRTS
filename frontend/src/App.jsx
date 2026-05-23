@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ToastProvider } from "./context/ToastContext";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -12,6 +13,9 @@ import UserManagement from "./pages/UserManagement";
 import AgentCategories from "./pages/AgentCategories";
 import MyComplaints from "./pages/MyComplaints";
 import Reports from "./pages/Reports";
+import AdminAssignmentQueue from "./pages/AdminAssignmentQueue";
+import AdminStatusQueue from "./pages/AdminStatusQueue";
+import SlaBreached from "./pages/SlaBreached";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Redirects to /dashboard if the user's role is not in the allowed list
@@ -25,6 +29,7 @@ function RoleRoute({ roles, children }) {
 
 function App() {
   return (
+    <ToastProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Login />} />
@@ -82,6 +87,30 @@ function App() {
           </ProtectedRoute>
         } />
 
+        <Route path="/admin/assignment-queue" element={
+          <ProtectedRoute>
+            <RoleRoute roles={["admin", "supervisor"]}>
+              <AdminAssignmentQueue />
+            </RoleRoute>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/status-queue" element={
+          <ProtectedRoute>
+            <RoleRoute roles={["admin", "supervisor"]}>
+              <AdminStatusQueue />
+            </RoleRoute>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/sla-breached" element={
+          <ProtectedRoute>
+            <RoleRoute roles={["admin", "supervisor"]}>
+              <SlaBreached />
+            </RoleRoute>
+          </ProtectedRoute>
+        } />
+
         <Route path="/reports" element={
           <ProtectedRoute>
             <RoleRoute roles={["admin", "supervisor", "quality"]}>
@@ -102,6 +131,7 @@ function App() {
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
+    </ToastProvider>
   );
 }
 

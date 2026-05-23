@@ -138,3 +138,21 @@ This document serves as a Design Decision Record — capturing not just what was
          complaint_id, agent_id, category_id (bypassed), assigned_by, note, assigned_at
        * Reports page shows cross-assignment count, breakdown by category and agent,
          and a full override log — giving quality team full visibility
+
+7. AGENT-CATEGORY CARDINALITY — HOW MANY CATEGORIES PER AGENT [RESOLVED]
+   - Problem: The requirements do not specify whether an agent handles one category or many.
+     The system technically allows many-to-many mapping but the intended operational model
+     was not defined, leading to ambiguity in how to seed data and set admin expectations.
+   - Why this resolution: In real support operations, agents are specialists. Assigning one
+     agent to many categories dilutes expertise and makes workload balancing harder to reason
+     about. The cross-category override exists precisely because the norm is one agent per
+     category — the override is the exception, not the baseline.
+     Allowing multiple categories per agent as a deliberate admin decision (e.g. a senior
+     agent who is cross-trained) keeps the system flexible without making multi-category
+     the default expectation.
+   - Resolution: One agent, one category is the operational norm.
+       * Seed data currently has multiple categories per agent — pending update to reflect one each
+       * Admin can assign multiple categories to an agent via Agent Category Management
+         if explicitly required (senior agent, small team, cross-training)
+       * Cross-category override remains the mechanism for exceptional complaint routing,
+         not a workaround for under-staffed categories

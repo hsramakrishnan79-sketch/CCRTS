@@ -126,6 +126,66 @@ CREATE TABLE IF NOT EXISTS cross_category_assignments (
 );
 `);
 
+// ── REPORTING TABLES (pre-computed analytics, populated by ETL refresh) ───────
+db.exec(`
+CREATE TABLE IF NOT EXISTS report_sla_summary (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    period           TEXT NOT NULL,
+    category         TEXT NOT NULL,
+    priority         TEXT NOT NULL,
+    total            INTEGER DEFAULT 0,
+    compliant        INTEGER DEFAULT 0,
+    breached         INTEGER DEFAULT 0,
+    compliance_rate  REAL DEFAULT 0,
+    refreshed_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(period, category, priority)
+);
+`);
+
+db.exec(`
+CREATE TABLE IF NOT EXISTS report_category_trends (
+    id                   INTEGER PRIMARY KEY AUTOINCREMENT,
+    period               TEXT NOT NULL,
+    category             TEXT NOT NULL,
+    total                INTEGER DEFAULT 0,
+    resolved             INTEGER DEFAULT 0,
+    escalated            INTEGER DEFAULT 0,
+    avg_resolution_hours REAL,
+    refreshed_at         DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(period, category)
+);
+`);
+
+db.exec(`
+CREATE TABLE IF NOT EXISTS report_agent_performance (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    period          TEXT NOT NULL,
+    agent_id        INTEGER NOT NULL,
+    agent_name      TEXT NOT NULL,
+    total_handled   INTEGER DEFAULT 0,
+    avg_rating      REAL,
+    sla_compliance  REAL,
+    reopened        INTEGER DEFAULT 0,
+    score           INTEGER DEFAULT 0,
+    refreshed_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(period, agent_id)
+);
+`);
+
+db.exec(`
+CREATE TABLE IF NOT EXISTS report_resolution_trends (
+    id                   INTEGER PRIMARY KEY AUTOINCREMENT,
+    period               TEXT NOT NULL,
+    priority             TEXT NOT NULL,
+    total_resolved       INTEGER DEFAULT 0,
+    avg_resolution_hours REAL,
+    min_resolution_hours REAL,
+    max_resolution_hours REAL,
+    refreshed_at         DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(period, priority)
+);
+`);
+
 // ── NOTIFICATIONS ─────────────────────────────────────────────────────────────
 db.exec(`
 CREATE TABLE IF NOT EXISTS notifications (

@@ -1,170 +1,265 @@
 import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
 import API from "../services/api";
-import { FaUserCog, FaPlus, FaTimes } from "react-icons/fa";
+import { useToast } from "../context/ToastContext";
+import RowActionsMenu from "../components/RowActionsMenu";
+
+const CATEGORY_COLORS = ["#1e3c72","#0c5460","#155724","#721c24","#856404","#4b0082","#1a6b3c"];
 
 export default function AgentCategories() {
+  const showToast = useToast();
+
+  const [agents, setAgents]         = useState([]);
   const [mappings, setMappings]     = useState([]);
   const [categories, setCategories] = useState([]);
-  const [agents, setAgents]         = useState([]);
-  const [addSelects, setAddSelects] = useState({});
-  const [error, setError]           = useState("");
+  const [loading, setLoading]       = useState(true);
+
+  const [selectedAgent, setSelectedAgent] = useState(null);
+  const [panelMode, setPanelMode]         = useState("view"); // "view" | "edit"
+  const [addCategoryId, setAddCategoryId] = useState("");
+  const [saving, setSaving]               = useState(false);
 
   const fetchAll = async () => {
     try {
-      const [mRes, cRes, aRes] = await Promise.all([
+      const [aRes, mRes, cRes] = await Promise.all([
+        API.get("/users/agents"),
         API.get("/agent-categories"),
         API.get("/agent-categories/categories"),
-        API.get("/users/agents"),
       ]);
+      setAgents(aRes.data);
       setMappings(mRes.data);
       setCategories(cRes.data);
-      setAgents(aRes.data);
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to load data");
+    } catch {
+      showToast("Failed to load data.", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => { fetchAll(); }, []);
 
-  const agentsByCategory = (category_id) =>
-    mappings.filter((m) => m.category_id === category_id);
+  const agentMappings = (agentId) => mappings.filter((m) => m.agent_id === agentId);
 
-  const unmappedAgents = (category_id) => {
-    const mapped = new Set(agentsByCategory(category_id).map((m) => m.agent_id));
-    return agents.filter((a) => !mapped.has(a.id));
+  const unassignedCategories = (agentId) => {
+    const assigned = new Set(agentMappings(agentId).map((m) => m.category_id));
+    return categories.filter((c) => !assigned.has(c.id));
   };
 
-  const handleAdd = async (category_id) => {
-    const agent_id = addSelects[category_id];
-    if (!agent_id) return;
+  const handleAdd = async () => {
+    if (!addCategoryId) return;
+    setSaving(true);
     try {
-      await API.post("/agent-categories", { agent_id: Number(agent_id), category_id });
-      setAddSelects((prev) => ({ ...prev, [category_id]: "" }));
-      fetchAll();
+      await API.post("/agent-categories", {
+        agent_id: selectedAgent.id,
+        category_id: Number(addCategoryId),
+      });
+      setAddCategoryId("");
+      await fetchAll();
+      setSelectedAgent((prev) => ({ ...prev }));
+      showToast("Category assigned.", "success");
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to add mapping");
+      showToast(err.response?.data?.message || "Failed to assign category.", "error");
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleRemove = async (agent_id, category_id) => {
-    try {
-      await API.delete(`/agent-categories/${agent_id}/${category_id}`);
-      fetchAll();
-    } catch (err) {
-      alert(err.response?.data?.message || "Failed to remove mapping");
+  const handleRemove = async (categoryId) => {
+    const mapped = agentMappings(selectedAgent.id);
+    if (mapped.length === 1) {
+      showToast("Cannot remove — agent must have at least one category.", "error");
+      return;
     }
+    setSaving(true);
+    try {
+      await API.delete(`/agent-categories/${selectedAgent.id}/${categoryId}`);
+      await fetchAll();
+      showToast("Category removed.", "success");
+    } catch (err) {
+      showToast(err.response?.data?.message || "Failed to remove category.", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const openPanel = (agent, mode) => {
+    setSelectedAgent(agent);
+    setPanelMode(mode);
+    setAddCategoryId("");
   };
 
   return (
     <Layout>
-      <div style={{ maxWidth: "960px" }}>
-        <h1 style={{ marginBottom: "4px", color: "#1e3c72" }}>Agent Category Management</h1>
-        <p style={{ color: "#888", marginBottom: "28px" }}>
-          Assign agents to complaint categories. Every category must have at least one agent at all times.
-        </p>
+      <h1 className="page-title">Agent Category Management</h1>
+      <p className="page-subtitle">
+        Assign complaint categories to agents. Every category must have at least one agent.
+      </p>
 
-        {error && (
-          <div style={{ background: "#f8d7da", color: "#721c24", padding: "12px 16px", borderRadius: "8px", marginBottom: "20px" }}>
-            {error}
-          </div>
-        )}
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(420px, 1fr))", gap: "20px" }}>
-          {categories.map((cat) => {
-            const mapped   = agentsByCategory(cat.id);
-            const options  = unmappedAgents(cat.id);
-            const isLast   = mapped.length === 1;
-
-            return (
-              <div key={cat.id} style={{
-                background: "white", borderRadius: "12px",
-                boxShadow: "0 2px 10px rgba(0,0,0,0.08)", padding: "20px",
-                borderLeft: `4px solid ${mapped.length === 0 ? "#dc3545" : "#1e3c72"}`,
-              }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
-                  <FaUserCog color="#1e3c72" size={18} />
-                  <h3 style={{ margin: 0, color: "#1e3c72", fontSize: "15px" }}>{cat.category_name}</h3>
-                  <span style={{
-                    marginLeft: "auto", fontSize: "12px", fontWeight: 600,
-                    background: mapped.length === 0 ? "#f8d7da" : "#d4edda",
-                    color: mapped.length === 0 ? "#721c24" : "#155724",
-                    padding: "2px 10px", borderRadius: "12px",
-                  }}>
-                    {mapped.length} agent{mapped.length !== 1 ? "s" : ""}
-                  </span>
-                </div>
-
-                {/* Assigned agents */}
-                {mapped.length === 0 ? (
-                  <p style={{ color: "#dc3545", fontSize: "13px", margin: "0 0 12px" }}>
-                    No agents assigned — this category cannot accept complaints.
-                  </p>
-                ) : (
-                  <div style={{ marginBottom: "14px" }}>
-                    {mapped.map((m) => (
-                      <div key={m.agent_id} style={{
-                        display: "flex", alignItems: "center", justifyContent: "space-between",
-                        padding: "8px 12px", background: "#f8f9fa", borderRadius: "8px",
-                        marginBottom: "6px",
-                      }}>
-                        <div>
-                          <span style={{ fontWeight: 600, fontSize: "14px" }}>{m.agent_name}</span>
-                          <span style={{ color: "#999", fontSize: "12px", marginLeft: "8px" }}>{m.agent_email}</span>
+      {loading ? (
+        <p className="text-muted">Loading...</p>
+      ) : agents.length === 0 ? (
+        <div className="empty-state">No agents found.</div>
+      ) : (
+        <div className="data-table-wrap">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Assigned Categories</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {agents.map((a) => {
+                const mapped = agentMappings(a.id);
+                return (
+                  <tr
+                    key={a.id}
+                    style={{ background: selectedAgent?.id === a.id ? "#eef4ff" : undefined }}
+                  >
+                    <td style={{ fontWeight: 600 }}>{a.name}</td>
+                    <td className="text-sm text-muted">{a.email}</td>
+                    <td>
+                      {mapped.length === 0 ? (
+                        <span className="badge status-escalated badge-sm">No categories</span>
+                      ) : (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                          {mapped.map((m, i) => (
+                            <span
+                              key={m.category_id}
+                              style={{
+                                background: CATEGORY_COLORS[i % CATEGORY_COLORS.length],
+                                color: "white", borderRadius: "12px",
+                                padding: "2px 10px", fontSize: "11px", fontWeight: 600,
+                              }}
+                            >
+                              {m.category_name}
+                            </span>
+                          ))}
                         </div>
-                        <button
-                          onClick={() => handleRemove(m.agent_id, cat.id)}
-                          title={isLast ? "Cannot remove last agent" : "Remove"}
-                          disabled={isLast}
-                          style={{
-                            background: isLast ? "#e9ecef" : "#f8d7da",
-                            color: isLast ? "#aaa" : "#721c24",
-                            border: "none", borderRadius: "6px",
-                            padding: "5px 10px", cursor: isLast ? "not-allowed" : "pointer",
-                            fontSize: "13px", display: "flex", alignItems: "center", gap: "4px",
-                          }}
-                        >
-                          <FaTimes size={11} /> Remove
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      )}
+                    </td>
+                    <td style={{ textAlign: "center" }}>
+                      <RowActionsMenu actions={[
+                        { label: "👁 View", color: "#1e3c72", onClick: () => openPanel(a, "view") },
+                        { label: "✎ Edit", color: "#555",    onClick: () => openPanel(a, "edit") },
+                      ]} />
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-                {/* Add agent */}
-                {options.length > 0 ? (
-                  <div style={{ display: "flex", gap: "8px" }}>
-                    <select
-                      value={addSelects[cat.id] ?? ""}
-                      onChange={(e) => setAddSelects((prev) => ({ ...prev, [cat.id]: e.target.value }))}
-                      style={{ flex: 1, padding: "8px 10px", borderRadius: "8px", border: "1px solid #ddd", fontSize: "13px" }}
-                    >
-                      <option value="">— Add agent —</option>
-                      {options.map((a) => (
-                        <option key={a.id} value={a.id}>{a.name}</option>
-                      ))}
-                    </select>
-                    <button
-                      onClick={() => handleAdd(cat.id)}
+      {/* ── Side Panel ── */}
+      {selectedAgent && (
+        <>
+          <div className="side-panel-backdrop" onClick={() => setSelectedAgent(null)} />
+          <div className="side-panel">
+
+            <div className="side-panel-header">
+              <div>
+                <h3 className="text-primary" style={{ marginBottom: "4px" }}>{selectedAgent.name}</h3>
+                <p className="text-muted text-sm">{selectedAgent.email}</p>
+              </div>
+              <button
+                onClick={() => setSelectedAgent(null)}
+                className="btn btn-ghost btn-sm"
+                style={{ fontSize: "18px", padding: "4px 10px" }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="side-panel-body">
+              <p
+                className="text-muted text-xs"
+                style={{ marginBottom: "12px", textTransform: "uppercase", letterSpacing: "0.8px", fontWeight: 700 }}
+              >
+                Assigned Categories
+              </p>
+
+              {agentMappings(selectedAgent.id).length === 0 ? (
+                <p className="text-muted text-sm">No categories assigned.</p>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "20px" }}>
+                  {agentMappings(selectedAgent.id).map((m, i) => (
+                    <div
+                      key={m.category_id}
                       style={{
-                        background: "#1e3c72", color: "white", border: "none",
-                        borderRadius: "8px", padding: "8px 14px", cursor: "pointer",
-                        fontSize: "13px", display: "flex", alignItems: "center", gap: "6px",
+                        display: "flex", alignItems: "center", justifyContent: "space-between",
+                        padding: "8px 12px", borderRadius: "8px", background: "#f4f6f9",
+                        borderLeft: `4px solid ${CATEGORY_COLORS[i % CATEGORY_COLORS.length]}`,
                       }}
                     >
-                      <FaPlus size={11} /> Add
-                    </button>
-                  </div>
-                ) : (
-                  <p style={{ color: "#28a745", fontSize: "13px", margin: 0 }}>
-                    All agents are assigned to this category.
+                      <span style={{ fontWeight: 600, fontSize: "13px" }}>{m.category_name}</span>
+                      {panelMode === "edit" && (
+                        <button
+                          onClick={() => handleRemove(m.category_id)}
+                          disabled={saving}
+                          className="btn btn-ghost-danger btn-xs"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {panelMode === "edit" && (
+                <div style={{ borderTop: "1px solid #f0f0f0", paddingTop: "16px" }}>
+                  <p
+                    className="text-muted text-xs"
+                    style={{ marginBottom: "10px", textTransform: "uppercase", letterSpacing: "0.8px", fontWeight: 700 }}
+                  >
+                    Assign New Category
                   </p>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
+                  {unassignedCategories(selectedAgent.id).length === 0 ? (
+                    <p className="text-muted text-sm">All categories are already assigned.</p>
+                  ) : (
+                    <div className="flex-row">
+                      <select
+                        value={addCategoryId}
+                        onChange={(e) => setAddCategoryId(e.target.value)}
+                        className="filter-select"
+                        style={{ flex: 1, fontSize: "13px" }}
+                      >
+                        <option value="">— Select category —</option>
+                        {unassignedCategories(selectedAgent.id).map((c) => (
+                          <option key={c.id} value={c.id}>{c.category_name}</option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={handleAdd}
+                        disabled={!addCategoryId || saving}
+                        className="btn btn-primary btn-sm"
+                      >
+                        {saving ? "Saving..." : "Assign"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="side-panel-footer">
+              {panelMode === "view" ? (
+                <button onClick={() => setPanelMode("edit")} className="btn btn-primary btn-full">
+                  Edit Categories →
+                </button>
+              ) : (
+                <button onClick={() => setPanelMode("view")} className="btn btn-ghost btn-full">
+                  Done
+                </button>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </Layout>
   );
 }

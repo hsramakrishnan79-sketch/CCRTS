@@ -9,69 +9,70 @@ import Pagination from "../components/Pagination";
 
 const PAGE_SIZE = 10;
 
-function timeSince(dateStr) {
-  if (!dateStr) return "—";
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const h = Math.floor(diff / 3600000);
-  if (h < 24) return `${h}h overdue`;
-  return `${Math.floor(h / 24)}d overdue`;
-}
+// Statuses that have a valid next action — used as the server-side filter
+const ACTIONABLE_STATUSES = "Assigned,In Progress,Pending Customer Response,Escalated,Resolved";
 
-export default function EscalationDashboard() {
+const NEXT_STATES = {
+  "Assigned":                  ["Escalated"],
+  "In Progress":               ["Escalated"],
+  "Pending Customer Response": ["Escalated"],
+  "Escalated":                 ["In Progress"],
+  "Resolved":                  ["Closed"],
+};
+
+export default function AdminStatusQueue() {
   const showToast = useToast();
 
   const [complaints, setComplaints]               = useState([]);
-  const [agentMappings, setAgentMappings]         = useState([]);
-  const [allAgents, setAllAgents]                 = useState([]);
+  const [total, setTotal]                         = useState(0);
   const [loading, setLoading]                     = useState(true);
   const [selectedComplaint, setSelectedComplaint] = useState(null);
   const [panelReadOnly, setPanelReadOnly]         = useState(false);
   const [page, setPage]                           = useState(1);
 
-  const fetchAll = async () => {
+  const fetchComplaints = async (p = page) => {
+    setLoading(true);
     try {
-      const [cRes, mRes, aRes] = await Promise.all([
-        API.get("/complaints/escalated"),
-        API.get("/agent-categories"),
-        API.get("/users/agents"),
-      ]);
-      setComplaints(cRes.data);
-      setAgentMappings(mRes.data);
-      setAllAgents(aRes.data);
+      const res = await API.get("/complaints/all", {
+        params: { status: ACTIONABLE_STATUSES, page: p, pageSize: PAGE_SIZE },
+      });
+      setComplaints(res.data.data);
+      setTotal(res.data.total);
     } catch {
-      showToast("Failed to load escalated complaints.", "error");
+      showToast("Failed to load complaints.", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchAll(); }, []);
+  useEffect(() => { fetchComplaints(); }, []);
+  useEffect(() => { fetchComplaints(page); }, [page]);
 
   const handleUpdate = async () => {
-    try {
-      const res = await API.get("/complaints/escalated");
-      setComplaints(res.data);
-      if (selectedComplaint) {
-        const updated = res.data.find((c) => c.complaint_id === selectedComplaint.complaint_id);
+    await fetchComplaints(page);
+    if (selectedComplaint) {
+      try {
+        const res = await API.get("/complaints/all", {
+          params: { status: ACTIONABLE_STATUSES, page: 1, pageSize: 1000 },
+        });
+        const updated = res.data.data.find((c) => c.complaint_id === selectedComplaint.complaint_id);
         updated ? setSelectedComplaint(updated) : setSelectedComplaint(null);
-      }
-    } catch {
-      showToast("Failed to refresh.", "error");
+      } catch { /* ignore */ }
     }
   };
 
   return (
     <Layout>
-      <h1 className="page-title" style={{ color: "#dc3545" }}>⚠ Escalation Dashboard</h1>
+      <h1 className="page-title">Status Queue</h1>
       <p className="page-subtitle">
-        Escalated complaints and SLA breaches requiring immediate attention — {complaints.length} item{complaints.length !== 1 ? "s" : ""}
+        Complaints requiring a status action — {total} pending
       </p>
 
       {loading ? (
         <p className="text-muted">Loading...</p>
       ) : complaints.length === 0 ? (
         <div className="empty-state" style={{ color: "#28a745" }}>
-          ✓ No escalated complaints. All SLAs are on track.
+          ✓ No complaints require status action.
         </div>
       ) : (
         <>
@@ -85,13 +86,12 @@ export default function EscalationDashboard() {
                 <th>Priority</th>
                 <th>Status</th>
                 <th>SLA Deadline</th>
-                <th>Overdue By</th>
                 <th>Assigned To</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
-              {complaints.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((c) => {
+              {complaints.map((c) => {
                 const breached = isSlaBreached(c);
                 return (
                   <tr
@@ -114,9 +114,6 @@ export default function EscalationDashboard() {
                       {breached ? "⚠ " : ""}
                       {c.sla_deadline ? new Date(c.sla_deadline).toLocaleString() : "—"}
                     </td>
-                    <td style={{ color: "#dc3545", fontWeight: 600, fontSize: "12px" }}>
-                      {breached ? timeSince(c.sla_deadline) : "—"}
-                    </td>
                     <td className="text-sm">{c.assigned_to_name || <span className="text-muted">Unassigned</span>}</td>
                     <td style={{ textAlign: "center" }}>
                       <RowActionsMenu actions={[
@@ -130,15 +127,15 @@ export default function EscalationDashboard() {
             </tbody>
           </table>
         </div>
-        <Pagination total={complaints.length} page={page} pageSize={PAGE_SIZE} onPageChange={setPage} />
+        <Pagination total={total} page={page} pageSize={PAGE_SIZE} onPageChange={setPage} />
         </>
       )}
 
       {selectedComplaint && (
         <ComplaintSidePanel
           complaint={selectedComplaint}
-          agentMappings={agentMappings}
-          allAgents={allAgents}
+          agentMappings={[]}
+          allAgents={[]}
           readOnly={panelReadOnly}
           onClose={() => setSelectedComplaint(null)}
           onUpdate={handleUpdate}

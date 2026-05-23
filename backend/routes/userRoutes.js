@@ -1,9 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const { protect, requireRole } = require("../middleware/authMiddleware");
-const { getAgents, getAllUsers, createUser, updateUserRole, deleteUser } = require("../controllers/userController");
+const { getAgents, getAllUsers, createUser, updateUserRole, deleteUser, getMyScore } = require("../controllers/userController");
 
 router.use(protect);
+
+router.get("/my-score", requireRole("agent"), getMyScore);
 
 // Agent list is accessible to admin and supervisor (for assignment dropdowns)
 router.get("/agents", requireRole(["admin", "supervisor"]), getAgents);

@@ -38,6 +38,10 @@ const COMPLAINT_SELECT = `
 // ── CREATE COMPLAINT ─────────────────────────────────────────────────────────
 const createComplaint = (req, res) => {
   try {
+    if (req.user.role === "admin") {
+      return res.status(403).json({ message: "Admins cannot create complaints" });
+    }
+
     const { complaint_type, description } = req.body;
 
     if (!description || !complaint_type) {
@@ -98,11 +102,64 @@ const setPriority = (req, res) => {
   }
 };
 
-// ── GET ALL COMPLAINTS ───────────────────────────────────────────────────────
+// ── GET ALL COMPLAINTS (paginated, filtered) ─────────────────────────────────
 const getComplaints = (req, res) => {
   try {
-    const complaints = db.prepare(COMPLAINT_SELECT + " ORDER BY c.created_at DESC").all();
-    res.status(200).json(complaints);
+    const isAgent  = req.user.role === "agent";
+    const page     = Math.max(1, parseInt(req.query.page)     || 1);
+    const pageSize = Math.min(100, Math.max(1, parseInt(req.query.pageSize) || 10));
+    const offset   = (page - 1) * pageSize;
+    const { status, priority, search } = req.query;
+
+    const conditions = [];
+    const params     = [];
+
+    if (isAgent) {
+      conditions.push("c.assigned_to = ?");
+      params.push(req.user.id);
+    }
+
+    if (status === "sla") {
+      conditions.push("c.sla_deadline IS NOT NULL AND c.sla_deadline < datetime('now') AND c.status NOT IN ('Resolved','Closed')");
+    } else if (status) {
+      const statuses = status.split(",").map((s) => s.trim()).filter(Boolean);
+      if (statuses.length === 1) {
+        conditions.push("c.status = ?");
+        params.push(statuses[0]);
+      } else {
+        conditions.push(`c.status IN (${statuses.map(() => "?").join(",")})`);
+        params.push(...statuses);
+      }
+    }
+
+    if (priority) {
+      conditions.push("c.priority = ?");
+      params.push(priority);
+    }
+
+    if (search) {
+      conditions.push("(c.complaint_id LIKE ? OR u1.name LIKE ? OR u1.email LIKE ?)");
+      const like = `%${search}%`;
+      params.push(like, like, like);
+    }
+
+    const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+
+    const countSql = `
+      SELECT COUNT(*) AS count
+      FROM complaints c
+      LEFT JOIN users u1       ON u1.id  = c.customer_id
+      LEFT JOIN categories cat ON cat.id = c.category_id
+      LEFT JOIN users u2       ON u2.id  = c.assigned_to
+      ${where}
+    `;
+    const { count: total } = db.prepare(countSql).get(...params);
+
+    const data = db.prepare(
+      COMPLAINT_SELECT + ` ${where} ORDER BY c.created_at DESC LIMIT ? OFFSET ?`
+    ).all(...params, pageSize, offset);
+
+    res.status(200).json({ data, total, page, pageSize });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error" });
@@ -518,6 +575,24 @@ const getMyStats = (req, res) => {
   }
 };
 
+// ── SLA BREACHED COMPLAINTS ───────────────────────────────────────────────────
+const getSlaBreached = (req, res) => {
+  try {
+    const complaints = db.prepare(
+      COMPLAINT_SELECT + `
+      WHERE c.sla_deadline IS NOT NULL
+        AND c.sla_deadline < datetime('now')
+        AND c.status NOT IN ('Resolved', 'Closed')
+      ORDER BY c.sla_deadline ASC
+      `
+    ).all();
+    res.status(200).json(complaints);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
 // ── ESCALATED COMPLAINTS ─────────────────────────────────────────────────────
 const getEscalated = (req, res) => {
   try {
@@ -550,16 +625,19 @@ const uploadAttachment = (req, res) => {
       return res.status(404).json({ message: "Complaint Not Found" });
     }
 
-    if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
+    if (!req.files?.length) {
+      return res.status(400).json({ message: "No files uploaded" });
     }
 
-    db.prepare(`
+    const insert = db.prepare(`
       INSERT INTO attachments (complaint_id, file_name, file_path, uploaded_by)
       VALUES (?, ?, ?, ?)
-    `).run(complaint_id, req.file.originalname, req.file.filename, req.user?.id ?? null);
+    `);
+    for (const file of req.files) {
+      insert.run(complaint_id, file.originalname, file.filename, req.user?.id ?? null);
+    }
 
-    res.status(201).json({ message: "File uploaded successfully", filename: req.file.filename });
+    res.status(201).json({ message: "Files uploaded successfully", count: req.files.length });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error" });
@@ -599,6 +677,7 @@ module.exports = {
   getMyQueue,
   getMyStats,
   getEscalated,
+  getSlaBreached,
   uploadAttachment,
   getAttachments,
 };

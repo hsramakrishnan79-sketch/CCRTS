@@ -16,6 +16,7 @@ const {
   getMyQueue,
   getMyStats,
   getEscalated,
+  getSlaBreached,
   uploadAttachment,
   getAttachments,
 } = require("../controllers/complaintController");
@@ -36,10 +37,11 @@ router.get("/my-stats",       requireRole("agent"),    getMyStats);
 router.get("/my-complaints",  requireRole("customer"), getMyComplaints);
 
 // Escalation view — admin, supervisor
-router.get("/escalated", requireRole(["admin", "supervisor"]), getEscalated);
+router.get("/escalated",    requireRole(["admin", "supervisor"]), getEscalated);
+router.get("/sla-breached", requireRole(["admin", "supervisor"]), getSlaBreached);
 
 // Attachments — must come before /:complaint_id
-router.post("/:complaint_id/attachments", upload.single("file"), uploadAttachment);
+router.post("/:complaint_id/attachments", upload.array("files", 10), uploadAttachment);
 router.get("/:complaint_id/attachments", getAttachments);
 
 // Single complaint — any authenticated user

@@ -1,0 +1,251 @@
+complaint_id,customer_email,category,priority,agent_email,description,status,created_at,sla_deadline,resolved_at
+CMP-046,rohit@email.com,Technical Problems,Medium,agent2@ccrts.com,"API endpoint returns 500 error intermittently affecting integrations.",Closed,2025-06-01 05:27:00,2025-06-03 05:27:00,2025-06-02 23:09:51
+CMP-041,vikram@email.com,Product Defects,Medium,agent2@ccrts.com,"Missing components — remote control not included in the box.",Closed,2025-06-01 12:45:00,2025-06-03 12:45:00,2025-06-03 09:05:41
+CMP-191,vikram@email.com,Billing Issues,High,agent3@ccrts.com,"Payment processed but account not credited. Transaction ref: REF-4380.",Closed,2025-06-06 11:34:00,2025-06-07 11:34:00,2025-06-07 16:09:26
+CMP-084,anjali@email.com,Technical Problems,Critical,agent2@ccrts.com,"File upload fails silently — no error shown but data not saved.",Closed,2025-06-16 04:05:00,2025-06-16 08:05:00,2025-06-16 05:55:50
+CMP-085,meena@email.com,Technical Problems,Medium,agent2@ccrts.com,"Integration with HubSpot broken after latest platform update.",Resolved,2025-06-20 05:18:00,2025-06-22 05:18:00,2025-06-23 23:24:51
+CMP-066,vikram@email.com,Billing Issues,Critical,agent2@ccrts.com,"Requesting itemised billing statement for past 3 months for audit purposes.",Closed,2025-06-23 10:35:00,2025-06-23 14:35:00,2025-06-23 13:30:28
+CMP-067,meena@email.com,Delivery Delays,Critical,agent2@ccrts.com,"Delivery rescheduled 12 times without any prior customer communication.",Closed,2025-06-25 06:35:00,2025-06-25 10:35:00,2025-06-25 09:09:03
+CMP-253,sneha@email.com,Delivery Delays,Medium,agent1@ccrts.com,"Wrong item delivered against order ORD-78241. Requesting exchange.",Resolved,2025-07-02 09:09:00,2025-07-04 09:09:00,2025-07-03 12:21:15
+CMP-087,sneha@email.com,Customer Service Complaints,Low,agent1@ccrts.com,"Committed callback within 2 hours — 3 days elapsed with no contact.",Closed,2025-07-04 03:42:00,2025-07-07 03:42:00,2025-07-06 15:15:08
+CMP-103,sneha@email.com,Product Defects,Medium,agent3@ccrts.com,"Product dims/flickers intermittently. Suspected internal fault.",Resolved,2025-07-05 09:05:00,2025-07-07 09:05:00,2025-07-06 02:21:12
+CMP-240,vikram@email.com,Service Disruption,Medium,agent3@ccrts.com,"Disaster recovery site inaccessible. Business continuity plan blocked.",Closed,2025-07-10 11:24:00,2025-07-12 11:24:00,2025-07-11 07:58:06
+CMP-198,anjali@email.com,Delivery Delays,Medium,agent2@ccrts.com,"Wrong item delivered against order ORD-99827. Requesting exchange.",Closed,2025-07-10 11:49:00,2025-07-12 11:49:00,2025-07-12 04:31:02
+CMP-112,rohit@email.com,Product Defects,Low,agent2@ccrts.com,"Missing components — remote control not included in the box.",Closed,2025-07-11 05:07:00,2025-07-14 05:07:00,2025-07-16 01:33:36
+CMP-025,meena@email.com,Billing Issues,Low,agent1@ccrts.com,"GST component incorrectly calculated on invoice INV-3450.",Closed,2025-07-13 06:11:00,2025-07-16 06:11:00,2025-07-14 22:18:27
+CMP-160,sneha@email.com,Billing Issues,Low,agent2@ccrts.com,"GST component incorrectly calculated on invoice INV-9899.",Closed,2025-07-14 10:07:00,2025-07-17 10:07:00,2025-07-21 07:53:19
+CMP-096,anjali@email.com,Billing Issues,Medium,agent2@ccrts.com,"Credit note issued last cycle not applied to current invoice.",Closed,2025-07-15 07:33:00,2025-07-17 07:33:00,2025-07-17 03:31:20
+CMP-207,meena@email.com,Account Issues,Medium,agent1@ccrts.com,"Two-step verification recovery codes no longer valid after phone change.",Closed,2025-07-17 13:15:00,2025-07-19 13:15:00,2025-07-18 12:53:15
+CMP-130,meena@email.com,Billing Issues,Critical,agent1@ccrts.com,"Credit note issued last cycle not applied to current invoice.",Closed,2025-07-21 03:31:00,2025-07-21 07:31:00,2025-07-21 12:12:46
+CMP-133,vikram@email.com,Billing Issues,Critical,agent3@ccrts.com,"GST component incorrectly calculated on invoice INV-2300.",Closed,2025-07-22 11:32:00,2025-07-22 15:32:00,2025-07-22 15:19:02
+CMP-163,rohit@email.com,Account Issues,Low,agent1@ccrts.com,"Two-step verification recovery codes no longer valid after phone change.",Closed,2025-07-23 03:18:00,2025-07-26 03:18:00,2025-07-24 04:46:32
+CMP-201,sneha@email.com,Product Defects,Low,agent2@ccrts.com,"Unit overheating during standard operation. Potential safety concern.",Closed,2025-07-25 06:59:00,2025-07-28 06:59:00,2025-07-30 02:07:44
+CMP-247,anjali@email.com,Service Disruption,Low,agent2@ccrts.com,"Scheduled maintenance window exceeded by 12 hours. Services still unavailable.",Closed,2025-07-27 06:18:00,2025-07-30 06:18:00,2025-08-03 18:17:29
+CMP-051,sneha@email.com,Technical Problems,Medium,agent1@ccrts.com,"Export to PDF feature broken — download initiates but file is corrupt.",Closed,2025-08-02 06:15:00,2025-08-04 06:15:00,2025-08-03 17:22:44
+CMP-192,meena@email.com,Customer Service Complaints,High,agent2@ccrts.com,"Agent promised follow-up within 24 hours — no contact received since.",Closed,2025-08-03 13:11:00,2025-08-04 13:11:00,2025-08-04 05:18:01
+CMP-060,rohit@email.com,Billing Issues,Medium,agent1@ccrts.com,"Subscription auto-renewed without consent. Requesting cancellation and refund.",Resolved,2025-08-09 03:27:00,2025-08-11 03:27:00,2025-08-10 16:12:57
+CMP-263,anjali@email.com,Customer Service Complaints,Medium,agent1@ccrts.com,"Inappropriate tone observed during live chat interaction on 6/4/2024.",Closed,2025-08-11 03:17:00,2025-08-13 03:17:00,2025-08-14 21:02:10
+CMP-043,rohit@email.com,Delivery Delays,Medium,agent2@ccrts.com,"Delivery rescheduled 4 times without any prior customer communication.",Resolved,2025-08-11 11:10:00,2025-08-13 11:10:00,2025-08-14 07:31:11
+CMP-038,meena@email.com,Billing Issues,Medium,agent1@ccrts.com,"Requesting itemised billing statement for past 3 months for audit purposes.",Resolved,2025-08-19 12:15:00,2025-08-21 12:15:00,2025-08-20 22:38:28
+CMP-228,vikram@email.com,Delivery Delays,Medium,agent3@ccrts.com,"Partial delivery received — 3 of 3 ordered items are missing.",Closed,2025-08-23 09:03:00,2025-08-25 09:03:00,2025-08-24 23:58:20
+CMP-017,vikram@email.com,Service Disruption,Low,agent3@ccrts.com,"Notification service down — critical alerts not reaching end users.",Resolved,2025-09-01 03:09:00,2025-09-04 03:09:00,2025-09-08 04:10:14
+CMP-120,meena@email.com,Billing Issues,Medium,agent3@ccrts.com,"Requesting itemised billing statement for past 3 months for audit purposes.",Closed,2025-09-01 03:30:00,2025-09-03 03:30:00,2025-09-05 15:33:09
+CMP-185,rohit@email.com,Account Issues,Medium,agent2@ccrts.com,"Duplicate account created. Requesting deduplication and data consolidation.",Closed,2025-09-01 12:10:00,2025-09-03 12:10:00,2025-09-05 20:52:14
+CMP-119,sneha@email.com,Product Defects,Medium,agent3@ccrts.com,"Product dims/flickers intermittently. Suspected internal fault.",Closed,2025-09-04 05:04:00,2025-09-06 05:04:00,2025-09-07 01:19:06
+CMP-078,rohit@email.com,Product Defects,Low,agent1@ccrts.com,"Product ceased functioning within 6 days of purchase with no physical damage.",Resolved,2025-09-05 09:09:00,2025-09-08 09:09:00,2025-09-12 02:44:30
+CMP-145,sneha@email.com,Product Defects,Critical,agent1@ccrts.com,"Unit overheating during standard operation. Potential safety concern.",Resolved,2025-09-09 09:26:00,2025-09-09 13:26:00,2025-09-09 10:38:20
+CMP-044,meena@email.com,Billing Issues,Medium,agent2@ccrts.com,"Credit note issued last cycle not applied to current invoice.",Closed,2025-09-09 11:13:00,2025-09-11 11:13:00,2025-09-11 08:41:54
+CMP-262,sneha@email.com,Product Defects,Low,agent1@ccrts.com,"Battery depleting 3x faster than advertised specification.",Closed,2025-09-15 12:09:00,2025-09-18 12:09:00,2025-09-16 21:09:47
+CMP-071,sneha@email.com,Service Disruption,Medium,agent1@ccrts.com,"Backup service failing silently. Data integrity at risk.",Resolved,2025-09-15 12:54:00,2025-09-17 12:54:00,2025-09-16 07:53:31
+CMP-259,anjali@email.com,Billing Issues,Low,agent2@ccrts.com,"Credit note issued last cycle not applied to current invoice.",Closed,2025-09-18 03:36:00,2025-09-21 03:36:00,2025-09-22 04:51:30
+CMP-213,anjali@email.com,Delivery Delays,High,agent2@ccrts.com,"Express shipping fee paid but standard delivery timelines applied.",Resolved,2025-09-20 03:51:00,2025-09-21 03:51:00,2025-09-20 11:27:55
+CMP-099,meena@email.com,Product Defects,Medium,agent3@ccrts.com,"Product dims/flickers intermittently. Suspected internal fault.",Resolved,2025-09-20 12:14:00,2025-09-22 12:14:00,2025-09-21 14:30:47
+CMP-097,meena@email.com,Service Disruption,High,agent1@ccrts.com,"Scheduled maintenance window exceeded by 2 hours. Services still unavailable.",Closed,2025-09-22 10:45:00,2025-09-23 10:45:00,2025-09-24 12:31:12
+CMP-142,anjali@email.com,Billing Issues,Medium,agent1@ccrts.com,"Was charged twice for invoice INV-2406. Requesting immediate refund.",Closed,2025-09-22 12:50:00,2025-09-24 12:50:00,2025-09-23 09:11:50
+CMP-155,sneha@email.com,Technical Problems,Critical,agent1@ccrts.com,"Two-factor authentication failing. SMS not delivered despite correct number.",Closed,2025-09-24 03:22:00,2025-09-24 07:22:00,2025-09-24 06:20:42
+CMP-140,meena@email.com,Billing Issues,Low,agent1@ccrts.com,"EMI deduction failed but penalty was charged to account. Ref: REF-1791.",Closed,2025-10-01 07:33:00,2025-10-04 07:33:00,2025-10-03 14:32:33
+CMP-035,vikram@email.com,Product Defects,Medium,agent2@ccrts.com,"Manufacturing defect observed — cracked bezel. Photographic evidence available.",Closed,2025-10-09 09:02:00,2025-10-11 09:02:00,2025-10-10 17:24:01
+CMP-129,rohit@email.com,Delivery Delays,Medium,agent1@ccrts.com,"Package marked as delivered in system but never physically received.",Closed,2025-10-11 05:49:00,2025-10-13 05:49:00,2025-10-13 21:35:02
+CMP-230,vikram@email.com,Billing Issues,Medium,agent1@ccrts.com,"Requesting itemised billing statement for past 3 months for audit purposes.",Closed,2025-10-11 06:27:00,2025-10-13 06:27:00,2025-10-13 14:27:23
+CMP-235,meena@email.com,Delivery Delays,Medium,agent2@ccrts.com,"Delivery attempted at incorrect address despite correct order details.",Resolved,2025-10-13 04:30:00,2025-10-15 04:30:00,2025-10-14 17:41:00
+CMP-132,anjali@email.com,Delivery Delays,High,agent3@ccrts.com,"Courier partner not reachable. Shipment status unknown for 11 days.",Resolved,2025-10-13 12:57:00,2025-10-14 12:57:00,2025-10-13 20:41:45
+CMP-021,vikram@email.com,Customer Service Complaints,Low,agent3@ccrts.com,"Agent promised follow-up within 24 hours — no contact received since.",Closed,2025-10-17 12:27:00,2025-10-20 12:27:00,2025-10-21 02:58:43
+CMP-178,rohit@email.com,Technical Problems,Medium,agent1@ccrts.com,"File upload fails silently — no error shown but data not saved.",Resolved,2025-10-18 05:31:00,2025-10-20 05:31:00,2025-10-18 22:04:44
+CMP-048,meena@email.com,Customer Service Complaints,Medium,agent3@ccrts.com,"Request to speak to supervisor repeatedly denied during support call.",Closed,2025-10-18 07:12:00,2025-10-20 07:12:00,2025-10-19 07:25:27
+CMP-109,sneha@email.com,Account Issues,Medium,agent1@ccrts.com,"Unable to update registered email address — settings page returns error.",Closed,2025-10-20 08:31:00,2025-10-22 08:31:00,2025-10-20 23:21:15
+CMP-152,rohit@email.com,Billing Issues,High,agent3@ccrts.com,"Credit note issued last cycle not applied to current invoice.",Resolved,2025-10-20 13:13:00,2025-10-21 13:13:00,2025-10-21 05:11:05
+CMP-256,vikram@email.com,Billing Issues,High,agent3@ccrts.com,"Was charged twice for invoice INV-9017. Requesting immediate refund.",Resolved,2025-10-22 04:26:00,2025-10-23 04:26:00,2025-10-22 17:51:21
+CMP-252,rohit@email.com,Billing Issues,Medium,agent3@ccrts.com,"EMI deduction failed but penalty was charged to account. Ref: REF-9325.",Closed,2025-10-23 10:44:00,2025-10-25 10:44:00,2025-10-25 20:40:54
+CMP-212,anjali@email.com,Delivery Delays,Medium,agent1@ccrts.com,"Package marked as delivered in system but never physically received.",Closed,2025-10-24 10:14:00,2025-10-26 10:14:00,2025-10-25 13:30:47
+CMP-101,sneha@email.com,Customer Service Complaints,High,agent3@ccrts.com,"Committed callback within 2 hours — 4 days elapsed with no contact.",Closed,2025-10-26 12:39:00,2025-10-27 12:39:00,2025-10-27 05:51:37
+CMP-031,meena@email.com,Billing Issues,Medium,agent2@ccrts.com,"Overcharged on renewal — quoted Rs.10055 but billed Rs.9255.",Resolved,2025-10-27 10:32:00,2025-10-29 10:32:00,2025-10-30 11:28:37
+CMP-164,anjali@email.com,Billing Issues,High,agent1@ccrts.com,"Requesting itemised billing statement for past 3 months for audit purposes.",Closed,2025-11-01 08:14:00,2025-11-02 08:14:00,2025-11-02 03:17:37
+CMP-088,anjali@email.com,Billing Issues,Medium,agent1@ccrts.com,"GST component incorrectly calculated on invoice INV-2326.",Resolved,2025-11-02 06:59:00,2025-11-04 06:59:00,2025-11-06 06:26:31
+CMP-068,meena@email.com,Technical Problems,Medium,agent3@ccrts.com,"Integration with Zapier broken after latest platform update.",Resolved,2025-11-03 09:04:00,2025-11-05 09:04:00,2025-11-04 16:45:11
+CMP-076,meena@email.com,Technical Problems,Medium,agent1@ccrts.com,"File upload fails silently — no error shown but data not saved.",Resolved,2025-11-07 07:34:00,2025-11-09 07:34:00,2025-11-12 02:57:31
+CMP-047,rohit@email.com,Account Issues,Medium,agent1@ccrts.com,"Business account downgraded without authorisation from account admin.",Resolved,2025-11-11 05:36:00,2025-11-13 05:36:00,2025-11-15 04:13:08
+CMP-146,anjali@email.com,Billing Issues,Medium,agent2@ccrts.com,"Promotional discount not applied despite valid coupon code PROMO227.",Closed,2025-11-11 12:42:00,2025-11-13 12:42:00,2025-11-13 07:54:26
+CMP-186,vikram@email.com,Delivery Delays,Critical,agent2@ccrts.com,"Courier partner not reachable. Shipment status unknown for 5 days.",Closed,2025-11-14 09:08:00,2025-11-14 13:08:00,2025-11-14 11:40:43
+CMP-236,meena@email.com,Account Issues,Medium,agent2@ccrts.com,"Account not deleted 5 days after formal deletion request was submitted.",Resolved,2025-11-14 11:18:00,2025-11-16 11:18:00,2025-11-15 20:10:20
+CMP-114,vikram@email.com,Customer Service Complaints,Low,agent1@ccrts.com,"Request to speak to supervisor repeatedly denied during support call.",Resolved,2025-11-16 05:19:00,2025-11-19 05:19:00,2025-11-21 08:26:28
+CMP-018,rohit@email.com,Delivery Delays,Low,agent2@ccrts.com,"Wrong item delivered against order ORD-54020. Requesting exchange.",Closed,2025-11-16 05:28:00,2025-11-19 05:28:00,2025-11-23 14:44:48
+CMP-157,vikram@email.com,Delivery Delays,Medium,agent2@ccrts.com,"Delivery rescheduled 12 times without any prior customer communication.",Resolved,2025-11-18 10:39:00,2025-11-20 10:39:00,2025-11-20 01:39:39
+CMP-265,meena@email.com,Product Defects,Medium,agent2@ccrts.com,"Serial number on device does not match the one on warranty card.",Resolved,2025-11-18 11:36:00,2025-11-20 11:36:00,2025-11-21 06:04:26
+CMP-128,vikram@email.com,Customer Service Complaints,Critical,agent2@ccrts.com,"Written commitment from agent not honoured. Reference email REF-8697.",Closed,2025-11-23 07:38:00,2025-11-23 11:38:00,2025-11-23 13:01:59
+CMP-070,sneha@email.com,Delivery Delays,Medium,agent2@ccrts.com,"Order ORD-28015 was due 5 days ago with no tracking update provided.",Resolved,2025-11-24 08:52:00,2025-11-26 08:52:00,2025-11-26 19:55:01
+CMP-037,anjali@email.com,Technical Problems,Medium,agent1@ccrts.com,"Dashboard not loading — spinner runs indefinitely on Chrome 16.4.",Closed,2025-11-25 03:31:00,2025-11-27 03:31:00,2025-11-26 14:21:31
+CMP-055,anjali@email.com,Technical Problems,Medium,agent2@ccrts.com,"File upload fails silently — no error shown but data not saved.",Resolved,2025-11-26 07:31:00,2025-11-28 07:31:00,2025-11-29 05:29:46
+CMP-039,vikram@email.com,Service Disruption,High,agent1@ccrts.com,"Disaster recovery site inaccessible. Business continuity plan blocked.",Closed,2025-12-01 10:51:00,2025-12-02 10:51:00,2025-12-01 19:04:55
+CMP-153,rohit@email.com,Technical Problems,Critical,agent1@ccrts.com,"Dashboard not loading — spinner runs indefinitely on Chrome 16.0.",Resolved,2025-12-02 11:03:00,2025-12-02 15:03:00,2025-12-02 12:31:04
+CMP-135,meena@email.com,Technical Problems,High,agent2@ccrts.com,"Unable to log in to the portal since yesterday. OTP not being delivered.",Closed,2025-12-13 11:39:00,2025-12-14 11:39:00,2025-12-14 00:28:31
+CMP-177,sneha@email.com,Billing Issues,High,agent2@ccrts.com,"Requesting itemised billing statement for past 3 months for audit purposes.",Closed,2025-12-21 06:17:00,2025-12-22 06:17:00,2025-12-21 21:34:50
+CMP-234,sneha@email.com,Service Disruption,High,agent1@ccrts.com,"API rate limits exceeded despite usage remaining within contracted plan.",Resolved,2026-01-01 09:22:00,2026-01-02 09:22:00,2026-01-02 07:06:20
+CMP-139,sneha@email.com,Customer Service Complaints,High,agent1@ccrts.com,"Contradictory information provided across phone, email, and chat channels.",Resolved,2026-01-06 05:39:00,2026-01-07 05:39:00,2026-01-07 22:23:24
+CMP-151,sneha@email.com,Delivery Delays,Medium,agent1@ccrts.com,"Return pickup not scheduled after 13 days of return request submission.",Closed,2026-01-06 06:11:00,2026-01-08 06:11:00,2026-01-07 18:50:53
+CMP-054,rohit@email.com,Technical Problems,Low,agent1@ccrts.com,"Integration with Salesforce broken after latest platform update.",Closed,2026-01-07 11:18:00,2026-01-10 11:18:00,2026-01-10 20:26:01
+CMP-091,vikram@email.com,Delivery Delays,High,agent2@ccrts.com,"Partial delivery received — 6 of 6 ordered items are missing.",Resolved,2026-01-07 13:18:00,2026-01-08 13:18:00,2026-01-08 08:17:49
+CMP-220,sneha@email.com,Delivery Delays,Critical,agent1@ccrts.com,"Courier partner not reachable. Shipment status unknown for 5 days.",Resolved,2026-01-09 07:09:00,2026-01-09 11:09:00,2026-01-09 10:46:15
+CMP-113,vikram@email.com,Account Issues,Medium,agent3@ccrts.com,"Permission levels not updated 2 days after role change was submitted.",Closed,2026-01-15 09:11:00,2026-01-17 09:11:00,2026-01-16 22:39:18
+CMP-176,rohit@email.com,Customer Service Complaints,Low,agent3@ccrts.com,"Inappropriate tone observed during live chat interaction on 27/9/2024.",Closed,2026-01-15 11:15:00,2026-01-18 11:15:00,2026-01-20 08:02:19
+CMP-063,rohit@email.com,Service Disruption,High,agent3@ccrts.com,"Disaster recovery site inaccessible. Business continuity plan blocked.",Resolved,2026-01-17 02:31:00,2026-01-18 02:31:00,2026-01-17 20:22:17
+CMP-127,vikram@email.com,Billing Issues,Critical,agent1@ccrts.com,"EMI deduction failed but penalty was charged to account. Ref: REF-6528.",Resolved,2026-01-18 09:22:00,2026-01-18 13:22:00,2026-01-18 15:33:41
+CMP-102,vikram@email.com,Technical Problems,Medium,agent3@ccrts.com,"Session expires every few minutes causing repeated login prompts.",Closed,2026-01-19 12:39:00,2026-01-21 12:39:00,2026-01-22 04:38:46
+CMP-237,meena@email.com,Delivery Delays,Critical,agent3@ccrts.com,"Wrong item delivered against order ORD-90065. Requesting exchange.",Resolved,2026-01-21 09:28:00,2026-01-21 13:28:00,2026-01-21 11:21:15
+CMP-134,meena@email.com,Product Defects,High,agent3@ccrts.com,"Missing components — charging cable not included in the box.",Resolved,2026-01-23 06:46:00,2026-01-24 06:46:00,2026-01-23 18:29:05
+CMP-229,vikram@email.com,Billing Issues,High,agent2@ccrts.com,"Was charged twice for invoice INV-1560. Requesting immediate refund.",Closed,2026-01-25 09:55:00,2026-01-26 09:55:00,2026-01-27 09:26:15
+CMP-117,meena@email.com,Delivery Delays,Low,agent1@ccrts.com,"Delivery attempted at incorrect address despite correct order details.",Closed,2026-01-26 02:38:00,2026-01-29 02:38:00,2026-01-27 19:51:22
+CMP-203,vikram@email.com,Technical Problems,High,agent1@ccrts.com,"Export to PDF feature broken — download initiates but file is corrupt.",Resolved,2026-01-26 06:21:00,2026-01-27 06:21:00,2026-01-26 17:00:45
+CMP-162,rohit@email.com,Service Disruption,Low,agent1@ccrts.com,"Notification service down — critical alerts not reaching end users.",Resolved,2026-01-26 12:38:00,2026-01-29 12:38:00,2026-01-31 01:26:32
+CMP-050,sneha@email.com,Delivery Delays,Medium,agent2@ccrts.com,"Return pickup not scheduled after 10 days of return request submission.",Resolved,2026-02-08 05:39:00,2026-02-10 05:39:00,2026-02-12 06:24:26
+CMP-107,vikram@email.com,Billing Issues,Low,agent2@ccrts.com,"Promotional discount not applied despite valid coupon code PROMO664.",Closed,2026-02-09 04:01:00,2026-02-12 04:01:00,2026-02-10 16:26:44
+CMP-206,sneha@email.com,Technical Problems,Medium,agent1@ccrts.com,"File upload fails silently — no error shown but data not saved.",Closed,2026-02-13 09:19:00,2026-02-15 09:19:00,2026-02-17 01:15:54
+CMP-082,vikram@email.com,Product Defects,Medium,agent1@ccrts.com,"Product ceased functioning within 10 days of purchase with no physical damage.",Resolved,2026-02-18 06:05:00,2026-02-20 06:05:00,2026-02-18 22:47:09
+CMP-190,sneha@email.com,Service Disruption,Medium,agent1@ccrts.com,"Automatic failover did not trigger during today's primary outage.",Resolved,2026-02-25 06:24:00,2026-02-27 06:24:00,2026-02-27 00:18:12
+CMP-167,rohit@email.com,Technical Problems,High,agent2@ccrts.com,"Dashboard not loading — spinner runs indefinitely on Chrome 16.2.",Closed,2026-03-01 06:44:00,2026-03-02 06:44:00,2026-03-01 17:40:02
+CMP-081,vikram@email.com,Billing Issues,Medium,agent3@ccrts.com,"Incorrect amount of Rs.9431 deducted without prior notice or consent.",Resolved,2026-03-01 09:39:00,2026-03-03 09:39:00,2026-03-03 01:56:03
+CMP-095,rohit@email.com,Technical Problems,Low,agent2@ccrts.com,"API endpoint returns 500 error intermittently affecting integrations.",Resolved,2026-03-07 11:02:00,2026-03-10 11:02:00,2026-03-13 06:46:17
+CMP-173,anjali@email.com,Technical Problems,Medium,agent2@ccrts.com,"File upload fails silently — no error shown but data not saved.",Resolved,2026-03-08 05:35:00,2026-03-10 05:35:00,2026-03-09 00:43:10
+CMP-089,meena@email.com,Account Issues,High,agent2@ccrts.com,"Business account downgraded without authorisation from account admin.",Closed,2026-03-12 05:47:00,2026-03-13 05:47:00,2026-03-14 07:45:34
+CMP-248,rohit@email.com,Product Defects,Medium,agent1@ccrts.com,"Product ceased functioning within 12 days of purchase with no physical damage.",Resolved,2026-03-14 06:07:00,2026-03-16 06:07:00,2026-03-15 16:56:05
+CMP-040,vikram@email.com,Service Disruption,Medium,agent2@ccrts.com,"API rate limits exceeded despite usage remaining within contracted plan.",Closed,2026-03-15 07:04:00,2026-03-17 07:04:00,2026-03-17 23:03:33
+CMP-032,anjali@email.com,Customer Service Complaints,Medium,agent2@ccrts.com,"Complaint raised 2 weeks ago with no acknowledgement or updates.",Closed,2026-03-17 03:49:00,2026-03-19 03:49:00,2026-03-20 05:48:15
+CMP-110,vikram@email.com,Delivery Delays,Medium,agent1@ccrts.com,"Delivery rescheduled 9 times without any prior customer communication.",Resolved,2026-03-17 08:21:00,2026-03-19 08:21:00,2026-03-18 19:14:53
+CMP-169,vikram@email.com,Service Disruption,High,agent1@ccrts.com,"Disaster recovery site inaccessible. Business continuity plan blocked.",Closed,2026-03-21 05:18:00,2026-03-22 05:18:00,2026-03-23 16:42:13
+CMP-106,vikram@email.com,Delivery Delays,Medium,agent1@ccrts.com,"Courier partner not reachable. Shipment status unknown for 2 days.",Resolved,2026-03-24 11:02:00,2026-03-26 11:02:00,2026-03-29 10:32:35
+CMP-090,anjali@email.com,Service Disruption,Medium,agent1@ccrts.com,"Backup service failing silently. Data integrity at risk.",Resolved,2026-03-27 03:24:00,2026-03-29 03:24:00,2026-03-28 05:59:41
+CMP-073,anjali@email.com,Product Defects,Medium,agent1@ccrts.com,"Device display shows dead pixels after 4 weeks of normal use. Under warranty.",Resolved,2026-03-27 05:09:00,2026-03-29 05:09:00,2026-03-30 02:15:15
+CMP-036,anjali@email.com,Billing Issues,High,agent2@ccrts.com,"Promotional discount not applied despite valid coupon code PROMO758.",Closed,2026-04-04 07:03:00,2026-04-05 07:03:00,2026-04-04 20:36:49
+CMP-121,meena@email.com,Delivery Delays,High,agent3@ccrts.com,"Delivery attempted at incorrect address despite correct order details.",Closed,2026-04-05 04:47:00,2026-04-06 04:47:00,2026-04-06 11:56:39
+CMP-171,vikram@email.com,Customer Service Complaints,Medium,agent2@ccrts.com,"Support agent was dismissive during call on 14/6/2024. Requesting escalation.",Closed,2026-04-08 10:46:00,2026-04-10 10:46:00,2026-04-09 18:18:25
+CMP-052,rohit@email.com,Delivery Delays,Medium,agent1@ccrts.com,"Delivery rescheduled 2 times without any prior customer communication.",Closed,2026-04-14 05:04:00,2026-04-16 05:04:00,2026-04-15 21:16:56
+CMP-264,sneha@email.com,Technical Problems,Medium,agent1@ccrts.com,"File upload fails silently — no error shown but data not saved.",Resolved,2026-04-15 06:24:00,2026-04-17 06:24:00,2026-04-16 14:11:33
+CMP-214,vikram@email.com,Delivery Delays,Medium,agent1@ccrts.com,"Delivery attempted at incorrect address despite correct order details.",Closed,2026-04-15 11:05:00,2026-04-17 11:05:00,2026-04-16 15:18:09
+CMP-238,vikram@email.com,Product Defects,High,agent2@ccrts.com,"Product packaging severely damaged on arrival. Contents may be affected.",Closed,2026-04-15 11:39:00,2026-04-16 11:39:00,2026-04-16 02:53:49
+CMP-208,vikram@email.com,Service Disruption,Low,agent1@ccrts.com,"Notification service down — critical alerts not reaching end users.",Closed,2026-04-16 09:14:00,2026-04-19 09:14:00,2026-04-17 08:37:24
+CMP-233,vikram@email.com,Billing Issues,Medium,agent1@ccrts.com,"Overcharged on renewal — quoted Rs.6234 but billed Rs.11682.",Closed,2026-04-19 03:35:00,2026-04-21 03:35:00,2026-04-21 00:42:08
+CMP-116,anjali@email.com,Service Disruption,Low,agent1@ccrts.com,"Intermittent connectivity issues causing critical business disruption.",Resolved,2026-04-22 03:31:00,2026-04-25 03:31:00,2026-04-28 15:17:47
+CMP-053,vikram@email.com,Technical Problems,Medium,agent1@ccrts.com,"Integration with Salesforce broken after latest platform update.",Resolved,2026-04-22 05:48:00,2026-04-24 05:48:00,2026-04-23 21:43:39
+CMP-226,vikram@email.com,Product Defects,Low,agent1@ccrts.com,"Product dims/flickers intermittently. Suspected internal fault.",Closed,2026-04-23 10:11:00,2026-04-26 10:11:00,2026-04-27 08:03:19
+CMP-093,rohit@email.com,Billing Issues,Medium,agent2@ccrts.com,"Incorrect amount of Rs.7697 deducted without prior notice or consent.",Resolved,2026-04-27 04:42:00,2026-04-29 04:42:00,2026-04-28 03:34:47
+CMP-154,anjali@email.com,Customer Service Complaints,Medium,agent2@ccrts.com,"Committed callback within 2 hours — 7 days elapsed with no contact.",Closed,2026-04-27 07:12:00,2026-04-29 07:12:00,2026-04-28 18:42:28
+CMP-183,meena@email.com,Technical Problems,High,agent3@ccrts.com,"Session expires every few minutes causing repeated login prompts.",Resolved,2026-05-01 03:41:00,2026-05-02 03:41:00,2026-05-02 14:43:14
+CMP-224,rohit@email.com,Technical Problems,Low,agent1@ccrts.com,"Dashboard not loading — spinner runs indefinitely on Chrome 16.4.",Resolved,2026-05-02 04:47:00,2026-05-05 04:47:00,2026-05-07 20:28:46
+CMP-196,vikram@email.com,Delivery Delays,Low,agent3@ccrts.com,"Delivery attempted at incorrect address despite correct order details.",Resolved,2026-05-02 07:58:00,2026-05-05 07:58:00,2026-05-03 18:11:40
+CMP-222,meena@email.com,Technical Problems,Medium,agent2@ccrts.com,"File upload fails silently — no error shown but data not saved.",Closed,2026-05-03 11:09:00,2026-05-05 11:09:00,2026-05-04 15:04:27
+CMP-172,rohit@email.com,Customer Service Complaints,Medium,agent2@ccrts.com,"Committed callback within 2 hours — 10 days elapsed with no contact.",Resolved,2026-05-04 09:31:00,2026-05-06 09:31:00,2026-05-05 00:50:33
+CMP-166,rohit@email.com,Technical Problems,Low,agent2@ccrts.com,"Dashboard not loading — spinner runs indefinitely on Chrome 17.4.",Closed,2026-05-05 05:10:00,2026-05-08 05:10:00,2026-05-12 10:19:53
+CMP-165,vikram@email.com,Billing Issues,Low,agent3@ccrts.com,"Requesting itemised billing statement for past 3 months for audit purposes.",Resolved,2026-05-06 12:31:00,2026-05-09 12:31:00,2026-05-13 13:36:25
+CMP-034,vikram@email.com,Delivery Delays,Medium,agent3@ccrts.com,"Delivery rescheduled 7 times without any prior customer communication.",Resolved,2026-05-08 03:33:00,2026-05-10 03:33:00,2026-05-11 07:16:56
+CMP-216,vikram@email.com,Technical Problems,Low,agent1@ccrts.com,"Unable to log in to the portal since yesterday. OTP not being delivered.",Resolved,2026-05-08 05:00:00,2026-05-11 05:00:00,2026-05-09 14:59:08
+CMP-189,rohit@email.com,Account Issues,High,agent1@ccrts.com,"Business account downgraded without authorisation from account admin.",Closed,2026-05-08 06:52:00,2026-05-09 06:52:00,2026-05-10 10:03:26
+CMP-062,anjali@email.com,Service Disruption,Medium,agent1@ccrts.com,"Complete service unavailability since 10:10 AM. Multiple business users affected.",Resolved,2026-05-08 07:22:00,2026-05-10 07:22:00,2026-05-09 09:58:04
+CMP-022,anjali@email.com,Service Disruption,Low,agent1@ccrts.com,"Disaster recovery site inaccessible. Business continuity plan blocked.",Resolved,2026-05-08 11:53:00,2026-05-11 11:53:00,2026-05-15 00:16:06
+CMP-245,meena@email.com,Account Issues,High,agent3@ccrts.com,"Business account downgraded without authorisation from account admin.",Closed,2026-05-12 11:30:00,2026-05-13 11:30:00,2026-05-14 08:23:10
+CMP-123,anjali@email.com,Technical Problems,High,agent1@ccrts.com,"API endpoint returns 500 error intermittently affecting integrations.",Resolved,2026-05-16 08:24:00,2026-05-17 08:24:00,2026-05-16 19:31:43
+CMP-124,vikram@email.com,Product Defects,High,agent1@ccrts.com,"Manufacturing defect observed — misaligned screen. Photographic evidence available.",Resolved,2026-05-17 05:15:00,2026-05-18 05:15:00,2026-05-18 13:35:58
+CMP-045,vikram@email.com,Billing Issues,High,agent1@ccrts.com,"Payment processed but account not credited. Transaction ref: REF-8020.",Closed,2026-05-17 07:35:00,2026-05-18 07:35:00,2026-05-17 19:30:50
+CMP-241,rohit@email.com,Customer Service Complaints,Medium,agent2@ccrts.com,"Contradictory information provided across phone, email, and chat channels.",Closed,2026-05-18 10:01:00,2026-05-20 10:01:00,2026-05-19 10:07:58
+CMP-136,sneha@email.com,Delivery Delays,Low,agent1@ccrts.com,"Express shipping fee paid but standard delivery timelines applied.",In Progress,2026-05-20 16:43:41,2026-05-23 16:43:41,
+CMP-197,sneha@email.com,Delivery Delays,Low,agent1@ccrts.com,"Delivery rescheduled 9 times without any prior customer communication.",Assigned,2026-05-20 17:02:59,2026-05-23 17:02:59,
+CMP-202,vikram@email.com,Product Defects,Low,,"Missing components — charging cable not included in the box.",Open,2026-05-20 17:10:59,2026-05-23 17:10:59,
+CMP-077,anjali@email.com,Technical Problems,Low,,"Mobile application crashes on iOS 17.2 consistently during checkout.",Open,2026-05-20 21:54:01,2026-05-23 21:54:01,
+CMP-019,sneha@email.com,Product Defects,Low,agent3@ccrts.com,"Serial number on device does not match the one on warranty card.",In Progress,2026-05-21 00:00:56,2026-05-24 00:00:56,
+CMP-138,vikram@email.com,Account Issues,Low,,"KYC documents uploaded 7 days ago. Verification status still pending.",Open,2026-05-21 00:27:05,2026-05-24 00:27:05,
+CMP-111,vikram@email.com,Billing Issues,Low,agent1@ccrts.com,"Subscription auto-renewed without consent. Requesting cancellation and refund.",Pending Customer Response,2026-05-21 00:40:24,2026-05-24 00:40:24,
+CMP-104,anjali@email.com,Technical Problems,Low,agent2@ccrts.com,"Dashboard not loading — spinner runs indefinitely on Chrome 15.4.",Assigned,2026-05-21 01:00:57,2026-05-24 01:00:57,
+CMP-181,anjali@email.com,Billing Issues,Low,agent1@ccrts.com,"Incorrect amount of Rs.14575 deducted without prior notice or consent.",Assigned,2026-05-21 02:01:45,2026-05-24 02:01:45,
+CMP-210,rohit@email.com,Product Defects,Low,agent3@ccrts.com,"Product packaging severely damaged on arrival. Contents may be affected.",Pending Customer Response,2026-05-21 03:52:42,2026-05-24 03:52:42,
+CMP-023,rohit@email.com,Service Disruption,Low,agent2@ccrts.com,"Complete service unavailability since 10:00 AM. Multiple business users affected.",Pending Customer Response,2026-05-21 08:05:42,2026-05-24 08:05:42,
+CMP-244,rohit@email.com,Product Defects,Critical,agent2@ccrts.com,"Colour and finish do not match the product image shown at time of order.",Closed,2026-05-21 08:53:00,2026-05-21 12:53:00,2026-05-21 12:00:17
+CMP-257,meena@email.com,Customer Service Complaints,High,agent3@ccrts.com,"Contradictory information provided across phone, email, and chat channels.",Closed,2026-05-21 10:07:00,2026-05-22 10:07:00,2026-05-23 07:37:18
+CMP-260,sneha@email.com,Product Defects,Low,agent3@ccrts.com,"Manufacturing defect observed — loose hinge. Photographic evidence available.",Pending Customer Response,2026-05-21 10:49:17,2026-05-24 10:49:17,
+CMP-209,meena@email.com,Product Defects,Low,,"Product ceased functioning within 7 days of purchase with no physical damage.",Open,2026-05-21 11:06:16,2026-05-24 11:06:16,
+CMP-194,vikram@email.com,Account Issues,Low,,"Two-step verification recovery codes no longer valid after phone change.",Open,2026-05-21 11:25:32,2026-05-24 11:25:32,
+CMP-033,rohit@email.com,Service Disruption,Low,agent2@ccrts.com,"Service degradation ongoing for 10 hours. Response times above 10 seconds.",In Progress,2026-05-21 11:51:41,2026-05-24 11:51:41,
+CMP-105,vikram@email.com,Billing Issues,Low,agent3@ccrts.com,"Subscription auto-renewed without consent. Requesting cancellation and refund.",Assigned,2026-05-21 12:13:18,2026-05-24 12:13:18,
+CMP-254,rohit@email.com,Product Defects,Low,,"Colour and finish do not match the product image shown at time of order.",Open,2026-05-21 12:35:27,2026-05-24 12:35:27,
+CMP-156,meena@email.com,Product Defects,Medium,agent3@ccrts.com,"Colour and finish do not match the product image shown at time of order.",Assigned,2026-05-21 13:51:38,2026-05-23 13:51:38,
+CMP-115,rohit@email.com,Customer Service Complaints,Medium,agent1@ccrts.com,"Inappropriate tone observed during live chat interaction on 13/6/2024.",Assigned,2026-05-21 15:06:50,2026-05-23 15:06:50,
+CMP-020,rohit@email.com,Delivery Delays,Low,agent3@ccrts.com,"Delivery attempted at incorrect address despite correct order details.",In Progress,2026-05-21 16:04:08,2026-05-24 16:04:08,
+CMP-158,sneha@email.com,Account Issues,Medium,agent3@ccrts.com,"KYC documents uploaded 3 days ago. Verification status still pending.",In Progress,2026-05-21 16:18:38,2026-05-23 16:18:38,
+CMP-083,rohit@email.com,Product Defects,Medium,agent1@ccrts.com,"Product packaging severely damaged on arrival. Contents may be affected.",Assigned,2026-05-21 18:35:49,2026-05-23 18:35:49,
+CMP-174,meena@email.com,Service Disruption,Medium,agent2@ccrts.com,"Backup service failing silently. Data integrity at risk.",In Progress,2026-05-21 18:37:30,2026-05-23 18:37:30,
+CMP-028,meena@email.com,Billing Issues,Medium,agent3@ccrts.com,"GST component incorrectly calculated on invoice INV-1749.",Escalated,2026-05-21 18:45:00,2026-05-23 18:45:00,
+CMP-255,anjali@email.com,Billing Issues,Medium,agent1@ccrts.com,"Promotional discount not applied despite valid coupon code PROMO654.",Assigned,2026-05-21 19:40:47,2026-05-23 19:40:47,
+CMP-250,vikram@email.com,Technical Problems,Medium,agent3@ccrts.com,"API endpoint returns 500 error intermittently affecting integrations.",Escalated,2026-05-21 19:52:10,2026-05-23 19:52:10,
+CMP-175,anjali@email.com,Delivery Delays,Medium,agent1@ccrts.com,"Delivery attempted at incorrect address despite correct order details.",Escalated,2026-05-21 22:01:51,2026-05-23 22:01:51,
+CMP-065,meena@email.com,Billing Issues,Medium,agent3@ccrts.com,"Requesting itemised billing statement for past 3 months for audit purposes.",Assigned,2026-05-21 22:02:10,2026-05-23 22:02:10,
+CMP-251,sneha@email.com,Account Issues,Medium,,"Account data merged incorrectly during system migration. History missing.",Open,2026-05-21 22:39:07,2026-05-23 22:39:07,
+CMP-030,sneha@email.com,Technical Problems,Medium,,"Session expires every few minutes causing repeated login prompts.",Open,2026-05-21 23:28:37,2026-05-23 23:28:37,
+CMP-118,meena@email.com,Billing Issues,Medium,agent2@ccrts.com,"Was charged twice for invoice INV-9654. Requesting immediate refund.",Escalated,2026-05-21 23:43:22,2026-05-23 23:43:22,
+CMP-056,meena@email.com,Billing Issues,Medium,agent2@ccrts.com,"Requesting itemised billing statement for past 3 months for audit purposes.",Escalated,2026-05-22 00:04:39,2026-05-24 00:04:39,
+CMP-098,rohit@email.com,Technical Problems,Medium,agent1@ccrts.com,"Integration with Salesforce broken after latest platform update.",Assigned,2026-05-22 00:39:03,2026-05-24 00:39:03,
+CMP-195,anjali@email.com,Billing Issues,Medium,,"Subscription auto-renewed without consent. Requesting cancellation and refund.",Open,2026-05-22 01:21:49,2026-05-24 01:21:49,
+CMP-249,vikram@email.com,Delivery Delays,Low,,"Courier partner not reachable. Shipment status unknown for 5 days.",Open,2026-05-22 01:52:35,2026-05-25 01:52:35,
+CMP-205,meena@email.com,Technical Problems,Medium,,"Two-factor authentication failing. SMS not delivered despite correct number.",Open,2026-05-22 02:30:12,2026-05-24 02:30:12,
+CMP-042,sneha@email.com,Service Disruption,Medium,agent2@ccrts.com,"Complete service unavailability since 10:20 AM. Multiple business users affected.",Assigned,2026-05-22 03:16:46,2026-05-24 03:16:46,
+CMP-016,rohit@email.com,Customer Service Complaints,Medium,agent1@ccrts.com,"Request to speak to supervisor repeatedly denied during support call.",Pending Customer Response,2026-05-22 03:37:01,2026-05-24 03:37:01,
+CMP-027,sneha@email.com,Delivery Delays,Medium,agent2@ccrts.com,"Fragile item delivered with significant damage due to poor packaging.",In Progress,2026-05-22 03:50:32,2026-05-24 03:50:32,
+CMP-193,rohit@email.com,Service Disruption,Medium,agent3@ccrts.com,"Services unavailable in East region since early morning.",Assigned,2026-05-22 03:56:29,2026-05-24 03:56:29,
+CMP-211,meena@email.com,Customer Service Complaints,Low,,"Previous complaint closed without resolution. Raising again for review.",Open,2026-05-22 04:05:25,2026-05-25 04:05:25,
+CMP-057,meena@email.com,Product Defects,Medium,agent1@ccrts.com,"Product dims/flickers intermittently. Suspected internal fault.",In Progress,2026-05-22 04:06:52,2026-05-24 04:06:52,
+CMP-075,meena@email.com,Customer Service Complaints,Low,agent2@ccrts.com,"Request to speak to supervisor repeatedly denied during support call.",Pending Customer Response,2026-05-22 05:15:25,2026-05-25 05:15:25,
+CMP-159,anjali@email.com,Product Defects,Low,agent2@ccrts.com,"Product ceased functioning within 4 days of purchase with no physical damage.",Assigned,2026-05-22 06:09:30,2026-05-25 06:09:30,
+CMP-064,vikram@email.com,Customer Service Complaints,Low,agent2@ccrts.com,"Agent promised follow-up within 24 hours — no contact received since.",In Progress,2026-05-22 06:45:51,2026-05-25 06:45:51,
+CMP-024,anjali@email.com,Delivery Delays,Low,agent3@ccrts.com,"Delivery rescheduled 8 times without any prior customer communication.",Pending Customer Response,2026-05-22 07:18:01,2026-05-25 07:18:01,
+CMP-200,anjali@email.com,Delivery Delays,Medium,agent2@ccrts.com,"Wrong item delivered against order ORD-80138. Requesting exchange.",In Progress,2026-05-22 07:58:29,2026-05-24 07:58:29,
+CMP-094,meena@email.com,Product Defects,Medium,agent2@ccrts.com,"Manufacturing defect observed — faulty charging port. Photographic evidence available.",Pending Customer Response,2026-05-22 09:18:24,2026-05-24 09:18:24,
+CMP-179,meena@email.com,Customer Service Complaints,Low,agent2@ccrts.com,"Support agent was dismissive during call on 19/11/2024. Requesting escalation.",Assigned,2026-05-22 09:18:42,2026-05-25 09:18:42,
+CMP-131,vikram@email.com,Customer Service Complaints,Medium,agent2@ccrts.com,"Inappropriate tone observed during live chat interaction on 4/3/2024.",Assigned,2026-05-22 10:43:56,2026-05-24 10:43:56,
+CMP-074,anjali@email.com,Customer Service Complaints,High,agent3@ccrts.com,"Previous complaint closed without resolution. Raising again for review.",In Progress,2026-05-22 12:28:45,2026-05-23 12:28:45,
+CMP-170,sneha@email.com,Technical Problems,Medium,agent2@ccrts.com,"API endpoint returns 500 error intermittently affecting integrations.",Escalated,2026-05-22 12:57:27,2026-05-24 12:57:27,
+CMP-199,vikram@email.com,Service Disruption,High,,"Disaster recovery site inaccessible. Business continuity plan blocked.",Open,2026-05-22 13:25:13,2026-05-23 13:25:13,
+CMP-161,rohit@email.com,Product Defects,High,agent3@ccrts.com,"Colour and finish do not match the product image shown at time of order.",Pending Customer Response,2026-05-22 13:31:07,2026-05-23 13:31:07,
+CMP-049,meena@email.com,Customer Service Complaints,Medium,,"Hold time exceeded 45 minutes before call dropped without resolution.",Open,2026-05-22 13:45:21,2026-05-24 13:45:21,
+CMP-059,vikram@email.com,Billing Issues,Medium,agent2@ccrts.com,"GST component incorrectly calculated on invoice INV-2864.",Escalated,2026-05-22 13:49:43,2026-05-24 13:49:43,
+CMP-092,rohit@email.com,Delivery Delays,Medium,agent2@ccrts.com,"Order ORD-70626 was due 2 days ago with no tracking update provided.",Pending Customer Response,2026-05-22 13:58:36,2026-05-24 13:58:36,
+CMP-182,rohit@email.com,Delivery Delays,High,agent3@ccrts.com,"Delivery rescheduled 5 times without any prior customer communication.",Assigned,2026-05-22 14:31:36,2026-05-23 14:31:36,
+CMP-232,anjali@email.com,Billing Issues,Medium,agent1@ccrts.com,"GST component incorrectly calculated on invoice INV-3031.",Pending Customer Response,2026-05-22 14:48:42,2026-05-24 14:48:42,
+CMP-187,sneha@email.com,Delivery Delays,High,agent3@ccrts.com,"Wrong item delivered against order ORD-63576. Requesting exchange.",In Progress,2026-05-22 14:57:32,2026-05-23 14:57:32,
+CMP-079,rohit@email.com,Delivery Delays,Low,agent1@ccrts.com,"Package marked as delivered in system but never physically received.",Assigned,2026-05-22 15:00:29,2026-05-25 15:00:29,
+CMP-072,anjali@email.com,Service Disruption,Medium,agent1@ccrts.com,"Backup service failing silently. Data integrity at risk.",In Progress,2026-05-22 15:33:39,2026-05-24 15:33:39,
+CMP-086,vikram@email.com,Billing Issues,High,agent2@ccrts.com,"Promotional discount not applied despite valid coupon code PROMO961.",In Progress,2026-05-22 15:46:09,2026-05-23 15:46:09,
+CMP-026,vikram@email.com,Delivery Delays,Low,agent1@ccrts.com,"Express shipping fee paid but standard delivery timelines applied.",Assigned,2026-05-22 16:05:49,2026-05-25 16:05:49,
+CMP-150,rohit@email.com,Customer Service Complaints,Medium,agent2@ccrts.com,"Committed callback within 2 hours — 10 days elapsed with no contact.",In Progress,2026-05-22 16:59:25,2026-05-24 16:59:25,
+CMP-141,rohit@email.com,Product Defects,Low,agent1@ccrts.com,"Colour and finish do not match the product image shown at time of order.",Assigned,2026-05-22 17:27:18,2026-05-25 17:27:18,
+CMP-243,vikram@email.com,Customer Service Complaints,High,,"Support agent was dismissive during call on 14/11/2024. Requesting escalation.",Open,2026-05-22 17:55:51,2026-05-23 17:55:51,
+CMP-258,vikram@email.com,Service Disruption,Low,agent1@ccrts.com,"Complete service unavailability since 10:00 AM. Multiple business users affected.",Pending Customer Response,2026-05-22 17:56:18,2026-05-25 17:56:18,
+CMP-149,vikram@email.com,Product Defects,Medium,agent1@ccrts.com,"Missing components — AC adapter not included in the box.",Assigned,2026-05-22 19:33:27,2026-05-24 19:33:27,
+CMP-246,anjali@email.com,Customer Service Complaints,Low,agent3@ccrts.com,"Previous complaint closed without resolution. Raising again for review.",In Progress,2026-05-22 20:35:05,2026-05-25 20:35:05,
+CMP-239,anjali@email.com,Service Disruption,Medium,agent1@ccrts.com,"API rate limits exceeded despite usage remaining within contracted plan.",Escalated,2026-05-22 21:03:10,2026-05-24 21:03:10,
+CMP-221,anjali@email.com,Product Defects,High,agent2@ccrts.com,"Unit overheating during standard operation. Potential safety concern.",Pending Customer Response,2026-05-22 21:07:55,2026-05-23 21:07:55,
+CMP-188,sneha@email.com,Technical Problems,High,agent2@ccrts.com,"Search functionality returns empty results for valid existing records.",Pending Customer Response,2026-05-22 21:08:36,2026-05-23 21:08:36,
+CMP-080,anjali@email.com,Billing Issues,High,agent2@ccrts.com,"Overcharged on renewal — quoted Rs.14473 but billed Rs.14957.",In Progress,2026-05-22 21:14:18,2026-05-23 21:14:18,
+CMP-225,anjali@email.com,Product Defects,Low,agent3@ccrts.com,"Product ceased functioning within 10 days of purchase with no physical damage.",Pending Customer Response,2026-05-22 21:25:16,2026-05-25 21:25:16,
+CMP-148,anjali@email.com,Technical Problems,Medium,agent1@ccrts.com,"File upload fails silently — no error shown but data not saved.",In Progress,2026-05-22 21:46:25,2026-05-24 21:46:25,
+CMP-061,rohit@email.com,Service Disruption,Low,agent2@ccrts.com,"Complete service unavailability since 9:30 AM. Multiple business users affected.",Pending Customer Response,2026-05-22 21:47:42,2026-05-25 21:47:42,
+CMP-227,anjali@email.com,Customer Service Complaints,High,agent2@ccrts.com,"Written commitment from agent not honoured. Reference email REF-8635.",In Progress,2026-05-22 22:11:50,2026-05-23 22:11:50,
+CMP-204,sneha@email.com,Billing Issues,High,agent3@ccrts.com,"Payment processed but account not credited. Transaction ref: REF-9304.",Escalated,2026-05-22 23:51:21,2026-05-23 23:51:21,
+CMP-069,meena@email.com,Billing Issues,Medium,agent3@ccrts.com,"Overcharged on renewal — quoted Rs.10108 but billed Rs.6245.",Assigned,2026-05-22 23:58:11,2026-05-24 23:58:11,
+CMP-144,rohit@email.com,Billing Issues,High,agent1@ccrts.com,"Was charged twice for invoice INV-1882. Requesting immediate refund.",Pending Customer Response,2026-05-23 01:18:29,2026-05-24 01:18:29,
+CMP-223,anjali@email.com,Billing Issues,High,agent2@ccrts.com,"Subscription auto-renewed without consent. Requesting cancellation and refund.",Pending Customer Response,2026-05-23 01:23:34,2026-05-24 01:23:34,
+CMP-125,vikram@email.com,Billing Issues,High,,"Subscription auto-renewed without consent. Requesting cancellation and refund.",Open,2026-05-23 01:57:35,2026-05-24 01:57:35,
+CMP-058,anjali@email.com,Product Defects,Medium,agent3@ccrts.com,"Device display shows dead pixels after 13 weeks of normal use. Under warranty.",Assigned,2026-05-23 01:58:27,2026-05-25 01:58:27,
+CMP-143,rohit@email.com,Billing Issues,Medium,agent1@ccrts.com,"Credit note issued last cycle not applied to current invoice.",Assigned,2026-05-23 02:33:25,2026-05-25 02:33:25,
+CMP-231,sneha@email.com,Account Issues,High,agent1@ccrts.com,"Account locked after failed login attempts. Password reset email not received.",Assigned,2026-05-23 02:41:14,2026-05-24 02:41:14,
+CMP-108,rohit@email.com,Billing Issues,Medium,agent1@ccrts.com,"Requesting itemised billing statement for past 3 months for audit purposes.",Assigned,2026-05-23 03:24:04,2026-05-25 03:24:04,
+CMP-242,rohit@email.com,Delivery Delays,High,agent1@ccrts.com,"Order ORD-75677 was due 2 days ago with no tracking update provided.",Assigned,2026-05-23 04:56:03,2026-05-24 04:56:03,
+CMP-215,anjali@email.com,Product Defects,Critical,,"Product ceased functioning within 13 days of purchase with no physical damage.",Open,2026-05-23 05:02:33,2026-05-23 09:02:33,
+CMP-137,sneha@email.com,Service Disruption,Critical,,"Automatic failover did not trigger during today's primary outage.",Open,2026-05-23 05:15:57,2026-05-23 09:15:57,
+CMP-100,anjali@email.com,Customer Service Complaints,Critical,agent1@ccrts.com,"Written commitment from agent not honoured. Reference email REF-8398.",Escalated,2026-05-23 05:30:31,2026-05-23 09:30:31,
+CMP-217,rohit@email.com,Account Issues,Critical,agent2@ccrts.com,"KYC documents uploaded 13 days ago. Verification status still pending.",Escalated,2026-05-23 05:35:48,2026-05-23 09:35:48,
+CMP-180,meena@email.com,Delivery Delays,High,agent1@ccrts.com,"Order ORD-45777 was due 2 days ago with no tracking update provided.",Pending Customer Response,2026-05-23 05:47:22,2026-05-24 05:47:22,
+CMP-184,rohit@email.com,Billing Issues,Critical,agent2@ccrts.com,"Subscription auto-renewed without consent. Requesting cancellation and refund.",Assigned,2026-05-23 05:58:43,2026-05-23 09:58:43,
+CMP-218,anjali@email.com,Product Defects,Critical,agent2@ccrts.com,"Device display shows dead pixels after 10 weeks of normal use. Under warranty.",Assigned,2026-05-23 06:03:02,2026-05-23 10:03:02,
+CMP-168,anjali@email.com,Service Disruption,Critical,agent1@ccrts.com,"Services unavailable in North region since early morning.",Assigned,2026-05-23 06:26:52,2026-05-23 10:26:52,
+CMP-122,vikram@email.com,Technical Problems,Critical,agent1@ccrts.com,"Search functionality returns empty results for valid existing records.",In Progress,2026-05-23 06:58:10,2026-05-23 10:58:10,
+CMP-126,rohit@email.com,Technical Problems,Critical,agent2@ccrts.com,"Session expires every few minutes causing repeated login prompts.",Pending Customer Response,2026-05-23 07:23:22,2026-05-23 11:23:22,
+CMP-261,sneha@email.com,Product Defects,Critical,agent2@ccrts.com,"Colour and finish do not match the product image shown at time of order.",In Progress,2026-05-23 07:25:55,2026-05-23 11:25:55,
+CMP-147,meena@email.com,Technical Problems,Critical,agent3@ccrts.com,"Unable to log in to the portal since yesterday. OTP not being delivered.",In Progress,2026-05-23 07:43:19,2026-05-23 11:43:19,
+CMP-219,sneha@email.com,Billing Issues,Medium,agent1@ccrts.com,"Credit note issued last cycle not applied to current invoice.",Resolved,2026-05-23 09:51:00,2026-05-25 09:51:00,2026-05-23 07:37:18
+CMP-029,anjali@email.com,Technical Problems,Low,agent1@ccrts.com,"Export to PDF feature broken — download initiates but file is corrupt.",Resolved,2026-05-25 11:38:00,2026-05-28 11:38:00,2026-05-23 07:37:18

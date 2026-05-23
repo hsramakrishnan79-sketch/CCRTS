@@ -9,7 +9,9 @@ export default function NotificationBell() {
   const [count, setCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
   const [open, setOpen] = useState(false);
-  const panelRef = useRef(null);
+  const [dropBottom, setDropBottom] = useState(0);
+  const panelRef  = useRef(null);
+  const buttonRef = useRef(null);
 
   // ── Fetch unread count (lightweight, runs on interval) ───────────────────
   const fetchCount = async () => {
@@ -44,7 +46,11 @@ export default function NotificationBell() {
   }, [open]);
 
   const handleOpen = () => {
-    if (!open) fetchList();
+    if (!open) {
+      fetchList();
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropBottom(window.innerHeight - rect.top + 6);
+    }
     setOpen((v) => !v);
   };
 
@@ -85,6 +91,7 @@ export default function NotificationBell() {
     <div ref={panelRef} style={{ position: "relative", marginBottom: "6px" }}>
       {/* Bell button */}
       <button
+        ref={buttonRef}
         onClick={handleOpen}
         title="Notifications"
         style={{
@@ -109,8 +116,8 @@ export default function NotificationBell() {
       {/* Dropdown panel — positioned to the right of the sidebar */}
       {open && (
         <div style={{
-          position: "fixed", left: "248px", top: "auto",
-          width: "340px", maxHeight: "480px",
+          position: "fixed", left: "214px", bottom: dropBottom,
+          width: "340px", maxHeight: "460px",
           background: "white", borderRadius: "12px",
           boxShadow: "0 8px 30px rgba(0,0,0,0.18)",
           overflow: "hidden", zIndex: 1000,
@@ -135,7 +142,7 @@ export default function NotificationBell() {
           </div>
 
           {/* List */}
-          <div style={{ overflowY: "auto", flex: 1 }}>
+          <div style={{ overflowY: "auto", flex: 1 }} onWheel={(e) => e.stopPropagation()}>
             {notifications.length === 0 ? (
               <p style={{ padding: "30px", textAlign: "center", color: "#aaa", fontSize: "14px" }}>
                 No notifications yet

@@ -2,51 +2,35 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import API from "../services/api";
 import Layout from "../components/Layout";
-
-const STATUS_STYLE = {
-  "Open":                       { background: "#e2e3e5", color: "#383d41" },
-  "Assigned":                   { background: "#cce5ff", color: "#004085" },
-  "In Progress":                { background: "#d1ecf1", color: "#0c5460" },
-  "Pending Customer Response":  { background: "#fff3cd", color: "#856404" },
-  "Escalated":                  { background: "#f8d7da", color: "#721c24" },
-  "Resolved":                   { background: "#d4edda", color: "#155724" },
-  "Closed":                     { background: "#d6d8d9", color: "#1b1e21" },
-};
+import { useToast } from "../context/ToastContext";
+import { statusClass } from "../utils/styleHelpers";
+import FileViewerModal from "../components/FileViewerModal";
+import InfoRow from "../components/InfoRow";
 
 const PRIORITY_COLOR = {
   Low: "#28a745", Medium: "#ffc107", High: "#fd7e14", Critical: "#dc3545",
 };
 
+const STATUS_DOT_COLOR = {
+  "Open": "#383d41", "Assigned": "#004085", "In Progress": "#0c5460",
+  "Pending Customer Response": "#856404", "Escalated": "#721c24",
+  "Resolved": "#155724", "Closed": "#1b1e21",
+};
+
 const BASE_URL = "http://127.0.0.1:3001";
-
-function StatusBadge({ status }) {
-  const style = STATUS_STYLE[status] || { background: "#eee", color: "#333" };
-  return (
-    <span style={{ ...style, padding: "4px 12px", borderRadius: "20px", fontSize: "13px", fontWeight: 600 }}>
-      {status}
-    </span>
-  );
-}
-
-function InfoRow({ label, value }) {
-  return (
-    <div style={{ display: "flex", borderBottom: "1px solid #f0f0f0", padding: "10px 0" }}>
-      <span style={{ width: "160px", color: "#888", fontSize: "13px", flexShrink: 0 }}>{label}</span>
-      <span style={{ fontWeight: 500, fontSize: "14px" }}>{value || "—"}</span>
-    </div>
-  );
-}
 
 export default function ComplaintDetail() {
   const { complaint_id } = useParams();
   const navigate = useNavigate();
 
+  const showToast = useToast();
   const [complaint, setComplaint] = useState(null);
   const [attachments, setAttachments] = useState([]);
   const [feedback, setFeedback] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -56,6 +40,7 @@ export default function ComplaintDetail() {
 
   const [reopenNote, setReopenNote] = useState("");
   const [reopening, setReopening] = useState(false);
+  const [viewingFile, setViewingFile] = useState(null);
 
   const fetchAll = async () => {
     try {
@@ -69,7 +54,11 @@ export default function ComplaintDetail() {
       setFeedback(fRes.data);
     } catch (err) {
       console.error(err);
-      alert("Failed to load complaint details");
+      if (err.response?.status === 403) {
+        setError("You don't have permission to view this complaint.");
+      } else {
+        setError("Failed to load complaint details. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -78,20 +67,20 @@ export default function ComplaintDetail() {
   useEffect(() => { fetchAll(); }, [complaint_id]);
 
   const handleUpload = async () => {
-    if (!selectedFile) return;
+    if (!selectedFiles.length) return;
     setUploading(true);
     try {
       const formData = new FormData();
-      formData.append("file", selectedFile);
+      for (const file of selectedFiles) formData.append("files", file);
       await API.post(`/complaints/${complaint_id}/attachments`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setSelectedFile(null);
+      setSelectedFiles([]);
       if (fileInputRef.current) fileInputRef.current.value = "";
       const aRes = await API.get(`/complaints/${complaint_id}/attachments`);
       setAttachments(aRes.data);
     } catch (err) {
-      alert(err.response?.data?.message || "Upload failed");
+      showToast(err.response?.data?.message || "Upload failed.", "error");
     } finally {
       setUploading(false);
     }
@@ -103,19 +92,35 @@ export default function ComplaintDetail() {
       await API.post(`/feedback/${complaint_id}`, { rating: fbRating, comments: fbComments });
       const fRes = await API.get(`/feedback/${complaint_id}`);
       setFeedback(fRes.data);
+      showToast("Feedback submitted. Thank you!", "success");
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to submit feedback");
+      showToast(err.response?.data?.message || "Failed to submit feedback.", "error");
     } finally {
       setSubmittingFb(false);
     }
   };
 
   if (loading) {
-    return <Layout><div style={{ padding: "40px", color: "#888" }}>Loading...</div></Layout>;
+    return <Layout><p className="text-muted" style={{ padding: "40px" }}>Loading...</p></Layout>;
   }
 
-  if (!complaint) {
-    return <Layout><div style={{ padding: "40px" }}>Complaint not found.</div></Layout>;
+  if (error || !complaint) {
+    return (
+      <Layout>
+        <div style={{ padding: "60px", textAlign: "center" }}>
+          <div style={{ fontSize: "48px", marginBottom: "16px" }}>🚫</div>
+          <h2 className="text-primary mb-8">{error ?? "Complaint not found."}</h2>
+          <p className="page-subtitle mb-24">
+            {error
+              ? "Head back to your complaints to find what you're looking for."
+              : "The complaint ID in the URL may be incorrect."}
+          </p>
+          <button onClick={() => window.history.back()} className="btn btn-primary">
+            Go Back
+          </button>
+        </div>
+      </Layout>
+    );
   }
 
   const user = JSON.parse(localStorage.getItem("user"));
@@ -133,7 +138,7 @@ export default function ComplaintDetail() {
 
   const handleReopen = async () => {
     if (!reopenNote.trim()) {
-      alert("Please provide a reason for reopening");
+      showToast("Please provide a reason for reopening.", "error");
       return;
     }
     setReopening(true);
@@ -144,8 +149,9 @@ export default function ComplaintDetail() {
       });
       setReopenNote("");
       fetchAll();
+      showToast("Complaint reopened.", "success");
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to reopen complaint");
+      showToast(err.response?.data?.message || "Failed to reopen complaint.", "error");
     } finally {
       setReopening(false);
     }
@@ -156,25 +162,18 @@ export default function ComplaintDetail() {
       <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
 
         {/* ── Header ─────────────────────────────────────────────── */}
-        <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "28px" }}>
-          <button
-            onClick={() => navigate("/view-complaints")}
-            style={{ background: "none", border: "1px solid #ccc", borderRadius: "8px", padding: "8px 14px", cursor: "pointer", color: "#555" }}
-          >
+        <div className="flex-row mb-24">
+          <button onClick={() => navigate("/view-complaints")} className="btn btn-ghost">
             ← Back
           </button>
           <div>
-            <h2 style={{ margin: 0, color: "#1e3c72" }}>{complaint.complaint_id}</h2>
-            <div style={{ marginTop: "6px", display: "flex", gap: "10px", alignItems: "center" }}>
-              <StatusBadge status={complaint.status} />
+            <h2 className="text-primary">{complaint.complaint_id}</h2>
+            <div className="flex-row mt-8">
+              <span className={statusClass(complaint.status)}>{complaint.status}</span>
               <span style={{ color: PRIORITY_COLOR[complaint.priority], fontWeight: 600, fontSize: "13px" }}>
                 {complaint.priority} Priority
               </span>
-              {slaBreached && (
-                <span style={{ background: "#f8d7da", color: "#721c24", padding: "3px 10px", borderRadius: "20px", fontSize: "12px" }}>
-                  ⚠ SLA Breached
-                </span>
-              )}
+              {slaBreached && <span className="badge status-sla-breach badge-sm">⚠ SLA Breached</span>}
             </div>
           </div>
         </div>
@@ -182,16 +181,17 @@ export default function ComplaintDetail() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginBottom: "24px" }}>
 
           {/* ── Complaint Details ──────────────────────────────────── */}
-          <div style={cardStyle}>
+          <div className="card">
             <h3 style={cardTitle}>Complaint Details</h3>
-            <InfoRow label="Complaint ID"   value={complaint.complaint_id} />
-            <InfoRow label="Customer Name"  value={complaint.customer_name} />
-            <InfoRow label="Email"          value={complaint.email} />
-            <InfoRow label="Phone"          value={complaint.phone} />
-            <InfoRow label="Category"       value={complaint.category} />
-            <InfoRow label="Description"    value={complaint.description} />
-            <InfoRow label="Assigned To"    value={complaint.assigned_to} />
-            <InfoRow label="Created At"     value={complaint.created_at ? new Date(complaint.created_at).toLocaleString() : "—"} />
+            <InfoRow label="Complaint ID"  value={complaint.complaint_id} />
+            <InfoRow label="Customer Name" value={complaint.customer_name} />
+            <InfoRow label="Email"         value={complaint.email} />
+            <InfoRow label="Phone"         value={complaint.phone} />
+            <InfoRow label="Category"      value={complaint.category} />
+            <InfoRow label="Priority"      value={complaint.priority} />
+            <InfoRow label="Description"   value={complaint.description} />
+            <InfoRow label="Assigned To"   value={complaint.assigned_to} />
+            <InfoRow label="Created At"    value={complaint.created_at ? new Date(complaint.created_at).toLocaleString() : "—"} />
             <InfoRow
               label="SLA Deadline"
               value={
@@ -206,21 +206,19 @@ export default function ComplaintDetail() {
           </div>
 
           {/* ── Status History Timeline ────────────────────────────── */}
-          <div style={cardStyle}>
+          <div className="card">
             <h3 style={cardTitle}>Status History</h3>
             {complaint.history?.length === 0 ? (
-              <p style={{ color: "#aaa", fontSize: "14px" }}>No history yet.</p>
+              <p className="text-muted">No history yet.</p>
             ) : (
               <div style={{ position: "relative", paddingLeft: "20px" }}>
-                {/* vertical line */}
                 <div style={{ position: "absolute", left: "7px", top: "6px", bottom: "6px", width: "2px", background: "#e0e0e0" }} />
                 {complaint.history?.map((h, i) => (
                   <div key={h.id ?? i} style={{ position: "relative", marginBottom: "20px" }}>
-                    {/* dot */}
                     <div style={{
                       position: "absolute", left: "-17px", top: "4px",
                       width: "12px", height: "12px", borderRadius: "50%",
-                      background: STATUS_STYLE[h.new_status]?.color ?? "#888",
+                      background: STATUS_DOT_COLOR[h.new_status] ?? "#888",
                       border: "2px solid white", boxShadow: "0 0 0 2px #ccc",
                     }} />
                     <div style={{ fontSize: "13px" }}>
@@ -228,11 +226,11 @@ export default function ComplaintDetail() {
                         {h.old_status ? `${h.old_status} → ` : ""}{h.new_status}
                       </span>
                       {h.changed_by_name && (
-                        <span style={{ color: "#888" }}> by {h.changed_by_name}</span>
+                        <span className="text-muted"> by {h.changed_by_name}</span>
                       )}
                     </div>
-                    {h.note && <div style={{ color: "#666", fontSize: "12px", marginTop: "2px" }}>{h.note}</div>}
-                    <div style={{ color: "#aaa", fontSize: "11px", marginTop: "2px" }}>
+                    {h.note && <div className="text-sm" style={{ color: "#666", marginTop: "2px" }}>{h.note}</div>}
+                    <div className="text-xs text-muted" style={{ marginTop: "2px" }}>
                       {h.changed_at ? new Date(h.changed_at).toLocaleString() : ""}
                     </div>
                   </div>
@@ -243,97 +241,130 @@ export default function ComplaintDetail() {
         </div>
 
         {/* ── Attachments ─────────────────────────────────────────── */}
-        <div style={{ ...cardStyle, marginBottom: "24px" }}>
+        <div className="card mb-24">
           <h3 style={cardTitle}>Attachments</h3>
 
-          {/* Upload */}
-          <div style={{ display: "flex", gap: "12px", alignItems: "center", marginBottom: "20px", flexWrap: "wrap" }}>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt"
-              onChange={(e) => setSelectedFile(e.target.files[0] || null)}
-              style={{ flex: 1, minWidth: "200px" }}
-            />
-            <button
-              onClick={handleUpload}
-              disabled={!selectedFile || uploading}
-              style={{
-                padding: "10px 20px", background: "#1e3c72", color: "white",
-                border: "none", borderRadius: "8px", cursor: selectedFile ? "pointer" : "not-allowed",
-                opacity: !selectedFile || uploading ? 0.6 : 1,
-              }}
-            >
-              {uploading ? "Uploading..." : "Upload"}
-            </button>
-          </div>
-          <p style={{ fontSize: "12px", color: "#999", marginBottom: "16px" }}>
-            Allowed: PDF, JPG, PNG, DOC, DOCX, TXT — max 5 MB
-          </p>
-
-          {/* File list */}
-          {attachments.length === 0 ? (
-            <p style={{ color: "#aaa", fontSize: "14px" }}>No attachments yet.</p>
+          {["Resolved", "Closed"].includes(complaint.status) ? (
+            attachments.length === 0 ? (
+              <p className="text-muted">No attachments.</p>
+            ) : (
+              <div className="data-table-wrap">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>File Name</th>
+                      <th>Uploaded By</th>
+                      <th>Date</th>
+                      <th>View</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {attachments.map((a) => (
+                      <tr key={a.id}>
+                        <td>{a.file_name}</td>
+                        <td>{a.uploaded_by_name || "—"}</td>
+                        <td>{a.uploaded_at ? new Date(a.uploaded_at).toLocaleString() : "—"}</td>
+                        <td>
+                          <button
+                            onClick={() => setViewingFile(a)}
+                            className="btn btn-ghost btn-xs"
+                            style={{ color: "#1e3c72" }}
+                          >
+                            👁 View
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )
           ) : (
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
-              <thead>
-                <tr style={{ background: "#f8f9fa" }}>
-                  <th style={thStyle}>File Name</th>
-                  <th style={thStyle}>Uploaded By</th>
-                  <th style={thStyle}>Date</th>
-                  <th style={thStyle}>Download</th>
-                </tr>
-              </thead>
-              <tbody>
-                {attachments.map((a) => (
-                  <tr key={a.id} style={{ borderBottom: "1px solid #f0f0f0" }}>
-                    <td style={tdStyle}>{a.file_name}</td>
-                    <td style={tdStyle}>{a.uploaded_by_name || "—"}</td>
-                    <td style={tdStyle}>{a.uploaded_at ? new Date(a.uploaded_at).toLocaleString() : "—"}</td>
-                    <td style={tdStyle}>
-                      <a
-                        href={`${BASE_URL}/uploads/${a.file_path}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        style={{ color: "#1e3c72", textDecoration: "none", fontWeight: 500 }}
-                      >
-                        Download
-                      </a>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <>
+              <div className="flex-row mb-16" style={{ flexWrap: "wrap" }}>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png,.txt"
+                  multiple
+                  onChange={(e) => setSelectedFiles(Array.from(e.target.files))}
+                  style={{ flex: 1, minWidth: "200px" }}
+                />
+                <button
+                  onClick={handleUpload}
+                  disabled={!selectedFiles.length || uploading}
+                  className="btn btn-primary"
+                >
+                  {uploading ? "Uploading..." : "Upload"}
+                </button>
+              </div>
+              <p className="text-muted text-xs mb-16">
+                Allowed: PDF, JPG, PNG, TXT — max 5 MB
+              </p>
+
+              {attachments.length === 0 ? (
+                <p className="text-muted">No attachments yet.</p>
+              ) : (
+                <div className="data-table-wrap">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>File Name</th>
+                        <th>Uploaded By</th>
+                        <th>Date</th>
+                        <th>View</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {attachments.map((a) => (
+                        <tr key={a.id}>
+                          <td>{a.file_name}</td>
+                          <td>{a.uploaded_by_name || "—"}</td>
+                          <td>{a.uploaded_at ? new Date(a.uploaded_at).toLocaleString() : "—"}</td>
+                          <td>
+                            <button
+                              onClick={() => setViewingFile(a)}
+                              className="btn btn-ghost btn-xs"
+                              style={{ color: "#1e3c72" }}
+                            >
+                              👁 View
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
           )}
         </div>
 
         {/* ── Feedback ─────────────────────────────────────────────── */}
-        <div style={cardStyle}>
+        <div className="card">
           <h3 style={cardTitle}>Customer Feedback</h3>
 
           {!canFeedback ? (
-            <p style={{ color: "#aaa", fontSize: "14px" }}>
+            <p className="text-muted">
               Feedback can only be submitted once the complaint is Resolved or Closed.
             </p>
           ) : feedback ? (
             <div>
-              <div style={{ display: "flex", gap: "4px", marginBottom: "10px" }}>
+              <div className="flex-row mb-8">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <span key={n} style={{ fontSize: "28px", color: n <= feedback.rating ? "#ffc107" : "#ddd" }}>★</span>
                 ))}
                 <span style={{ alignSelf: "center", marginLeft: "8px", fontWeight: 600 }}>{feedback.rating} / 5</span>
               </div>
-              {feedback.comments && <p style={{ color: "#555", fontSize: "14px" }}>{feedback.comments}</p>}
-              <p style={{ color: "#aaa", fontSize: "12px" }}>
+              {feedback.comments && <p className="text-sm" style={{ color: "#555" }}>{feedback.comments}</p>}
+              <p className="text-muted text-xs">
                 Submitted: {feedback.submitted_at ? new Date(feedback.submitted_at).toLocaleString() : "—"}
               </p>
             </div>
           ) : (
             <div>
-              <p style={{ marginBottom: "12px", fontSize: "14px", color: "#555" }}>Rate your experience with the resolution:</p>
-
-              {/* Star rating */}
-              <div style={{ display: "flex", gap: "6px", marginBottom: "16px" }}>
+              <p className="text-sm mb-8" style={{ color: "#555" }}>Rate your experience with the resolution:</p>
+              <div className="flex-row mb-16">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <span
                     key={n}
@@ -344,22 +375,17 @@ export default function ComplaintDetail() {
                   </span>
                 ))}
               </div>
-
               <textarea
                 placeholder="Additional comments (optional)"
                 value={fbComments}
                 onChange={(e) => setFbComments(e.target.value)}
-                style={{ width: "100%", height: "90px", padding: "10px", borderRadius: "8px", border: "1px solid #ddd", resize: "none", fontSize: "14px", boxSizing: "border-box", marginBottom: "14px" }}
+                className="form-input"
+                style={{ height: "90px", resize: "none" }}
               />
-
               <button
                 onClick={handleFeedbackSubmit}
                 disabled={submittingFb}
-                style={{
-                  padding: "10px 24px", background: "#1e3c72", color: "white",
-                  border: "none", borderRadius: "8px", cursor: "pointer",
-                  opacity: submittingFb ? 0.7 : 1, fontSize: "15px",
-                }}
+                className="btn btn-primary"
               >
                 {submittingFb ? "Submitting..." : "Submit Feedback"}
               </button>
@@ -369,32 +395,25 @@ export default function ComplaintDetail() {
 
         {/* ── Reopen ───────────────────────────────────────────────── */}
         {canReopen && (
-          <div style={{ ...cardStyle, marginTop: "24px", borderLeft: "4px solid #fd7e14" }}>
+          <div className="card mt-24" style={{ borderLeft: "4px solid #fd7e14" }}>
             <h3 style={{ ...cardTitle, color: "#fd7e14" }}>Reopen Complaint</h3>
-            <p style={{ fontSize: "14px", color: "#555", marginBottom: "14px" }}>
+            <p className="text-sm mb-16" style={{ color: "#555" }}>
               Reopening this complaint will return it to <strong>Assigned</strong> status.
               The assigned agent will be notified and the other management role will be informed.
               A mandatory reason is required.
             </p>
+            <label className="form-label">Reason <span style={{ color: "#dc3545" }}>*</span></label>
             <textarea
               placeholder="Reason for reopening (required)"
               value={reopenNote}
               onChange={(e) => setReopenNote(e.target.value)}
-              style={{
-                width: "100%", height: "80px", padding: "10px",
-                borderRadius: "8px", border: "1px solid #fd7e14",
-                resize: "none", fontSize: "14px", boxSizing: "border-box",
-                marginBottom: "12px",
-              }}
+              className="form-input"
+              style={{ height: "80px", resize: "none", borderColor: "#fd7e14" }}
             />
             <button
               onClick={handleReopen}
               disabled={reopening}
-              style={{
-                padding: "10px 24px", background: "#fd7e14", color: "white",
-                border: "none", borderRadius: "8px", cursor: "pointer",
-                opacity: reopening ? 0.7 : 1, fontSize: "15px",
-              }}
+              className="btn btn-warning"
             >
               {reopening ? "Reopening..." : "Reopen Complaint"}
             </button>
@@ -402,16 +421,13 @@ export default function ComplaintDetail() {
         )}
 
       </div>
+
+      {viewingFile && (
+        <FileViewerModal file={viewingFile} onClose={() => setViewingFile(null)} />
+      )}
     </Layout>
   );
 }
-
-const cardStyle = {
-  background: "white",
-  borderRadius: "12px",
-  padding: "24px",
-  boxShadow: "0 2px 10px rgba(0,0,0,0.07)",
-};
 
 const cardTitle = {
   margin: "0 0 16px",
@@ -421,6 +437,3 @@ const cardTitle = {
   borderBottom: "2px solid #f0f0f0",
   paddingBottom: "10px",
 };
-
-const thStyle = { padding: "10px 12px", textAlign: "left", fontWeight: 600, color: "#555" };
-const tdStyle = { padding: "10px 12px" };
