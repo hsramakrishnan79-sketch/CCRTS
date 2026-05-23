@@ -2,9 +2,16 @@ import { useEffect, useState } from "react";
 import API from "../services/api";
 import Layout from "../components/Layout";
 import SectionCard from "../components/SectionCard";
+import StatCard from "../components/StatCard";
 import StarRating from "../components/StarRating";
 import { HBar, VBars } from "../components/ChartBars";
+import ChartWithHighlights from "../components/ChartWithHighlights";
 import { PRIORITY_COLOR, SCORE_COLOR } from "../utils/styleHelpers";
+import {
+  FaClipboardList, FaCheckCircle, FaClock, FaExclamationTriangle, FaShieldAlt,
+  FaChartBar, FaUsers, FaStar, FaCheckDouble,
+} from "react-icons/fa";
+import EmptyState from "../components/EmptyState";
 
 const THIS_YEAR  = new Date().getFullYear();
 const THIS_MONTH = `${THIS_YEAR}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
@@ -36,7 +43,7 @@ export default function Reports() {
   const [loading, setLoading]       = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchReports = () => {
+  const fetchReports = async () => {
     setLoading(true);
     const params = new URLSearchParams();
     if (isAdmin && mode !== "all") {
@@ -47,10 +54,14 @@ export default function Reports() {
       if (mode === "custom")    { params.set("from", from); params.set("to", to); }
     }
     const qs = params.toString();
-    return API.get(`/reports${qs ? `?${qs}` : ""}`)
-      .then((r) => setData(r.data))
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    try {
+      const r = await API.get(`/reports${qs ? `?${qs}` : ""}`);
+      setData(r.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { fetchReports(); }, []);
@@ -97,7 +108,7 @@ export default function Reports() {
     mode === "quarterly"  ? `Monthly Trend — ${quarter} ${year}` :
     mode === "yearly"     ? `Monthly Trend — ${year}` :
     mode === "custom"     ? `Complaint Trend — ${from} to ${to}` :
-                            "Monthly Complaint Trend — Last 6 Months";
+                            "Monthly Complaint Trend — Last 12 Months";
 
   return (
     <Layout>
@@ -186,17 +197,22 @@ export default function Reports() {
       )}
 
       {/* ── Tab bar ─────────────────────────────────────────────────────────── */}
-      <div style={{ display: "flex", gap: "4px", borderBottom: "2px solid #e9ecef", marginBottom: "24px" }}>
+      <div style={{
+        display: "inline-flex", gap: "4px", background: "#eef0f5", borderRadius: "12px",
+        padding: "4px", marginBottom: "24px",
+      }}>
         {TABS.filter((t) => t.roles.includes(userRole)).map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
             style={{
-              padding: "10px 20px", border: "none", background: "none", cursor: "pointer",
-              fontSize: "14px", fontWeight: activeTab === tab.key ? 700 : 400,
-              color: activeTab === tab.key ? "#1e3c72" : "#888",
-              borderBottom: activeTab === tab.key ? "3px solid #1e3c72" : "3px solid transparent",
-              marginBottom: "-2px", transition: "color 0.15s",
+              padding: "8px 20px", border: "none", cursor: "pointer", fontSize: "13px",
+              fontWeight: activeTab === tab.key ? 700 : 500,
+              color: activeTab === tab.key ? "#1e3c72" : "#777",
+              background: activeTab === tab.key ? "white" : "transparent",
+              borderRadius: "8px",
+              boxShadow: activeTab === tab.key ? "0 1px 4px rgba(0,0,0,0.12)" : "none",
+              transition: "all 0.15s",
             }}
           >
             {tab.label}
@@ -208,35 +224,62 @@ export default function Reports() {
       {activeTab === "overview" && (
         <>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "16px", marginBottom: "24px" }}>
-            {[
-              { label: "Total Complaints", value: overview.total, sub: null, color: "#1e3c72" },
-              { label: "Resolved",         value: overview.resolved, sub: `${overview.resolutionRate}% rate`, color: "#28a745" },
-              { label: "Avg Resolution",   value: overview.avgResolutionHours != null ? `${overview.avgResolutionHours}h` : "—", sub: "per complaint", color: "#6f42c1" },
-              { label: "SLA Compliance",   value: slaCompliancePct != null ? `${slaCompliancePct}%` : "—",
-                sub: `${overview.slaCompliance?.onTime ?? 0} of ${overview.slaCompliance?.totalResolved ?? 0}`,
-                color: slaCompliancePct >= 80 ? "#28a745" : slaCompliancePct >= 60 ? "#fd7e14" : "#dc3545" },
-              { label: "Active Breaches",  value: overview.activeSlaBreaches, sub: "unresolved past SLA",
-                color: overview.activeSlaBreaches > 0 ? "#dc3545" : "#28a745" },
-            ].map(({ label, value, sub, color }) => (
-              <div key={label} className="card" style={{ textAlign: "center", padding: "16px 12px" }}>
-                <div style={{ fontSize: "28px", fontWeight: 700, color, lineHeight: 1.1 }}>{value}</div>
-                <div style={{ fontSize: "12px", fontWeight: 600, color: "#555", marginTop: "6px" }}>{label}</div>
-                {sub && <div style={{ fontSize: "11px", color: "#aaa", marginTop: "3px" }}>{sub}</div>}
-              </div>
-            ))}
+            <StatCard
+              label="Total Complaints"
+              value={overview.total}
+              icon={<FaClipboardList size={28} />}
+              gradient="linear-gradient(135deg,#1e3c72,#2a5298)"
+            />
+            <StatCard
+              label="Resolved"
+              value={overview.resolved}
+              sub={`${overview.resolutionRate}% rate`}
+              icon={<FaCheckCircle size={28} />}
+              gradient="linear-gradient(135deg,#56ab2f,#a8e063)"
+            />
+            <StatCard
+              label="Avg Resolution"
+              value={overview.avgResolutionHours != null ? `${overview.avgResolutionHours}h` : "—"}
+              sub="per complaint"
+              icon={<FaClock size={28} />}
+              gradient="linear-gradient(135deg,#834d9b,#d04ed6)"
+            />
+            <StatCard
+              label="SLA Compliance"
+              value={slaCompliancePct != null ? `${slaCompliancePct}%` : "—"}
+              sub={`${overview.slaCompliance?.onTime ?? 0} of ${overview.slaCompliance?.totalResolved ?? 0}`}
+              icon={<FaShieldAlt size={28} />}
+              gradient={
+                slaCompliancePct >= 80 ? "linear-gradient(135deg,#56ab2f,#a8e063)" :
+                slaCompliancePct >= 60 ? "linear-gradient(135deg,#f7971e,#ffd200)" :
+                                         "linear-gradient(135deg,#cb2d3e,#ef473a)"
+              }
+              light={slaCompliancePct >= 60 && slaCompliancePct < 80}
+            />
+            <StatCard
+              label="Active Breaches"
+              value={overview.activeSlaBreaches}
+              sub="unresolved past SLA"
+              icon={<FaExclamationTriangle size={28} />}
+              gradient={
+                overview.activeSlaBreaches > 0
+                  ? "linear-gradient(135deg,#cb2d3e,#ef473a)"
+                  : "linear-gradient(135deg,#56ab2f,#a8e063)"
+              }
+            />
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginBottom: "24px" }}>
             <SectionCard title="Complaints by Category">
               {byCategory.length === 0
-                ? <p className="text-muted">No data yet.</p>
+                ? <EmptyState icon={<FaChartBar />} message="No category data yet." />
                 : byCategory.map((c) => <HBar key={c.category} label={c.category} count={c.count} max={maxCategory} />)
               }
             </SectionCard>
 
             <SectionCard title="Complaints by Priority">
               {byPriority.length === 0
-                ? <p className="text-muted">No data yet.</p>
+                ? <EmptyState icon={<FaChartBar />} message="No priority data yet." />
                 : byPriority.map((p) => (
                     <HBar key={p.priority} label={p.priority} count={p.count}
                       max={Math.max(...byPriority.map((x) => x.count), 1)}
@@ -248,8 +291,8 @@ export default function Reports() {
 
           <SectionCard title={trendTitle}>
             {byMonth.length === 0
-              ? <p className="text-muted">No data for this period.</p>
-              : <VBars data={byMonth} labelKey={trendLabelKey} />
+              ? <EmptyState icon={<FaChartBar />} message="No data for this period." />
+              : <ChartWithHighlights data={byMonth} keyX={trendLabelKey} keyY="count" color="#1e3c72" height={180} />
             }
           </SectionCard>
         </>
@@ -259,7 +302,7 @@ export default function Reports() {
       {activeTab === "agents" && (
         <SectionCard title="Agent Performance">
           {agentPerformance.length === 0 ? (
-            <p className="text-muted">No data in reporting tables yet. Click "Refresh Analytics" to populate.</p>
+            <EmptyState icon={<FaUsers />} message="No agent data yet." hint='Click "Refresh Analytics" to populate.' />
           ) : (
             <div className="data-table-wrap">
               <table className="data-table">
@@ -315,11 +358,11 @@ export default function Reports() {
         <>
           <SectionCard title="SLA Compliance Analysis">
             {(!slaSummary || (slaSummary.byCategory.length === 0 && slaSummary.byPriority.length === 0)) ? (
-              <p className="text-muted">No SLA data in reporting tables yet. Click "Refresh Analytics".</p>
+              <EmptyState icon={<FaShieldAlt />} message="No SLA data yet." hint='Click "Refresh Analytics" to populate.' />
             ) : (
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
                 <div>
-                  <p className="text-muted text-sm" style={{ fontWeight: 600, marginBottom: "12px" }}>By Category</p>
+                  <p style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.8px", color: "#999", marginBottom: "12px" }}>By Category</p>
                   {slaSummary.byCategory.map((c) => (
                     <div key={c.category} style={{ marginBottom: "12px" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", marginBottom: "4px" }}>
@@ -342,7 +385,7 @@ export default function Reports() {
                   ))}
                 </div>
                 <div>
-                  <p className="text-muted text-sm" style={{ fontWeight: 600, marginBottom: "12px" }}>By Priority</p>
+                  <p style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.8px", color: "#999", marginBottom: "12px" }}>By Priority</p>
                   {slaSummary.byPriority.map((p) => (
                     <div key={p.priority} style={{ marginBottom: "12px" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", marginBottom: "4px" }}>
@@ -370,11 +413,11 @@ export default function Reports() {
 
           <SectionCard title="Resolution Time by Priority">
             {(!resolutionTrends || resolutionTrends.byPriority.length === 0) ? (
-              <p className="text-muted">No resolution data in reporting tables yet. Click "Refresh Analytics".</p>
+              <EmptyState icon={<FaClock />} message="No resolution data yet." hint='Click "Refresh Analytics" to populate.' />
             ) : (
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
                 <div>
-                  <p className="text-muted text-sm" style={{ fontWeight: 600, marginBottom: "12px" }}>Average Resolution Hours</p>
+                  <p style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.8px", color: "#999", marginBottom: "12px" }}>Average Resolution Hours</p>
                   {(() => {
                     const maxHours = Math.max(...resolutionTrends.byPriority.map((p) => p.avgHours), 1);
                     return resolutionTrends.byPriority.map((p) => (
@@ -399,9 +442,9 @@ export default function Reports() {
                   })()}
                 </div>
                 <div>
-                  <p className="text-muted text-sm" style={{ fontWeight: 600, marginBottom: "12px" }}>Trend by Period</p>
+                  <p style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.8px", color: "#999", marginBottom: "12px" }}>Trend by Period</p>
                   {resolutionTrends.byPeriod.length === 0 ? (
-                    <p className="text-muted text-sm">No period data.</p>
+                    <EmptyState icon={<FaChartBar />} message="No period data." />
                   ) : (
                     <div className="data-table-wrap" style={{ maxHeight: "220px", overflowY: "auto" }}>
                       <table className="data-table" style={{ fontSize: "12px" }}>
@@ -434,7 +477,7 @@ export default function Reports() {
       {activeTab === "satisfaction" && (
         <SectionCard title="Customer Satisfaction">
           {satisfaction.total === 0 ? (
-            <p className="text-muted">No feedback submitted yet.</p>
+            <EmptyState icon={<FaStar />} message="No feedback submitted yet." hint="Feedback appears once customers rate resolved complaints." />
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: "32px", alignItems: "center" }}>
               <div className="text-center">
@@ -473,7 +516,7 @@ export default function Reports() {
       {activeTab === "cross" && (
         <SectionCard title="Cross-Category Assignment Overrides">
           {!crossAssignments || crossAssignments.total === 0 ? (
-            <p className="text-success" style={{ fontSize: "14px" }}>No cross-category assignments recorded.</p>
+            <EmptyState icon={<FaCheckDouble />} message="No cross-category assignments recorded." success />
           ) : (
             <>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginBottom: "24px" }}>

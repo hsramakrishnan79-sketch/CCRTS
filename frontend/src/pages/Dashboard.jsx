@@ -9,6 +9,7 @@ import {
 } from "react-icons/fa";
 import StatCard from "../components/StatCard";
 import { HBar, VBars } from "../components/ChartBars";
+import ChartWithHighlights from "../components/ChartWithHighlights";
 import { SCORE_COLOR } from "../utils/styleHelpers";
 
 function QuickLink({ label, path, icon, color }) {
@@ -157,7 +158,7 @@ function AdminDashboard({ user }) {
               Monthly Complaint Volume — Last 12 Months
             </h3>
             {data?.monthlyTrend?.length > 0
-              ? <VBars data={data.monthlyTrend} keyX="month" keyY="total" color="#1e3c72" height={150} />
+              ? <ChartWithHighlights data={data.monthlyTrend} keyX="month" keyY="total" color="#1e3c72" height={180} />
               : <p className="text-muted text-sm">No data yet.</p>}
           </div>
 

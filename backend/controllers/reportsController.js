@@ -118,7 +118,7 @@ const getReports = (req, res) => {
     const trendLabel = trendGroup === "day" ? "day" : "month";
     const trendRange = clause
       ? `WHERE ${clause.replace(/created_at/g, "created_at")}`
-      : "WHERE created_at >= date('now', '-6 months')";
+      : "WHERE created_at >= date('now', '-12 months')";
 
     const byTrend = db.prepare(`
       SELECT strftime('${trendFmt}', created_at) AS ${trendLabel}, COUNT(*) AS count
