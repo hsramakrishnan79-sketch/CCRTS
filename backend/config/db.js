@@ -198,6 +198,10 @@ CREATE TABLE IF NOT EXISTS notifications (
 );
 `);
 
+// ── USERS: reset token columns (added Phase 2) ────────────────────────────────
+try { db.exec(`ALTER TABLE users ADD COLUMN reset_token TEXT`); } catch {}
+try { db.exec(`ALTER TABLE users ADD COLUMN reset_token_expires DATETIME`); } catch {}
+
 console.log("Database Connected");
 
 module.exports = db;

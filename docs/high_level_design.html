@@ -72,8 +72,8 @@
     <h1>High-Level Design Document</h1>
     <div class="subtitle">Customer Complaint &amp; Resolution Tracking System (CCRTS)</div>
     <div class="meta">
-      <div><label>Version</label><span>1.0</span></div>
-      <div><label>Phase</label><span>Phase 1</span></div>
+      <div><label>Version</label><span>2.0</span></div>
+      <div><label>Phase</label><span>Phase 1 &amp; 2</span></div>
       <div><label>Date</label><span>May 2026</span></div>
       <div><label>Status</label><span>Implemented</span></div>
     </div>
@@ -393,8 +393,89 @@
       &nbsp;&nbsp;└── screenshots/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← UI screenshots
     </div>
 
+    <!-- Phase 2 -->
+    <h2 class="section" id="p2">Phase 2 — ETL Pipeline &amp; Analytics</h2>
+    <p>Phase 2 extends the platform with an ETL pipeline that imports synthetic complaint data, populates pre-computed reporting tables, and surfaces analytics through the existing Reports page.</p>
+
+    <h3 class="sub">ETL Pipeline Architecture</h3>
+    <div class="arch-box">
+      <div class="arch-layer l1">
+        <div class="layer-title">Step 1 — Extract</div>
+        <p style="margin:0;font-size:13px;"><code>etl/generate_dataset.js</code> generates <code>complaints_dataset.csv</code> (250 records) and <code>feedback_dataset.csv</code> (~106 records) with statistically distributed priorities, statuses, SLA deadlines, and agent workloads. Active complaints use timestamps anchored to "now" so SLA deadlines are always in the future at generation time.</p>
+      </div>
+      <div class="arch-layer l2">
+        <div class="layer-title">Step 2 — Transform</div>
+        <p style="margin:0;font-size:13px;"><code>etl/etl_import.js</code> validates each row (required fields, enum membership, FK resolution for customer/agent/category), maps email addresses to user IDs, and skips duplicates. Invalid rows are logged and excluded — the pipeline is non-fatal and idempotent.</p>
+      </div>
+      <div class="arch-layer l3">
+        <div class="layer-title">Step 3 — Load &amp; Refresh</div>
+        <p style="margin:0;font-size:13px;"><code>etl/etl_refresh_reports.js</code> truncates and repopulates all 4 reporting tables in a single transaction. Safe to re-run at any time. <code>etl/reset.js</code> is a full demo-reset command — deletes all CMP-016+ records and reruns the full pipeline.</p>
+      </div>
+    </div>
+
+    <div class="callout"><strong>Demo usage:</strong> Run <code>node etl/reset.js</code> before any demo. Active complaints are regenerated with fresh timestamps. The data has a natural 72-hour shelf life before Low-priority complaints start auto-escalating.</div>
+
+    <h3 class="sub">Reporting Tables</h3>
+    <p>Four pre-computed analytics tables are populated by the ETL refresh. The Reports API reads from these tables instead of running live aggregation queries on the complaints table.</p>
+    <table>
+      <thead><tr><th>Table</th><th>Granularity</th><th>Key Metrics</th></tr></thead>
+      <tbody>
+        <tr><td><code>report_sla_summary</code></td><td>period × category × priority</td><td>total, compliant, breached, compliance_rate</td></tr>
+        <tr><td><code>report_category_trends</code></td><td>period × category</td><td>total, resolved, escalated, avg_resolution_hours</td></tr>
+        <tr><td><code>report_agent_performance</code></td><td>period × agent</td><td>total_handled, avg_rating, sla_compliance, reopened, score (0–100)</td></tr>
+        <tr><td><code>report_resolution_trends</code></td><td>period × priority</td><td>total_resolved, avg/min/max resolution hours</td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="sub">Agent Performance Score</h3>
+    <p>A composite 0–100 score is computed per agent per month and stored in <code>report_agent_performance.score</code>. It is also computed in real time for the agent's own sidebar badge (last 30 days).</p>
+    <table>
+      <thead><tr><th>Component</th><th>Weight</th><th>Formula</th></tr></thead>
+      <tbody>
+        <tr><td>Customer Rating</td><td>50 pts</td><td>(avgRating / 5) × 50</td></tr>
+        <tr><td>SLA Compliance</td><td>30 pts</td><td>(slaCompliance / 100) × 30</td></tr>
+        <tr><td>Reopen Rate</td><td>20 pts</td><td>(1 − reopenRate) × 20</td></tr>
+      </tbody>
+    </table>
+    <p>Score thresholds: <strong style="color:#28a745;">≥ 80 green</strong> (good) · <strong style="color:#fd7e14;">≥ 60 orange</strong> (watch) · <strong style="color:#dc3545;">&lt; 60 red</strong> (at risk). The score badge appears in the sidebar for agent-role users and in the Agent Performance tables on Admin and Quality dashboards.</p>
+
+    <h3 class="sub">New API Endpoints (Phase 2)</h3>
+    <table>
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><span class="method POST">POST</span></td><td><code>/api/reports/refresh</code></td><td>admin</td><td>Triggers ETL refresh of all 4 reporting tables</td></tr>
+        <tr><td><span class="method GET">GET</span></td><td><code>/api/dashboard/agent-performance</code></td><td>admin, quality</td><td>Last-30-days agent scores for dashboard performance tables</td></tr>
+        <tr><td><span class="method GET">GET</span></td><td><code>/api/users/my-score</code></td><td>agent</td><td>Calling agent's own 30-day score and breakdown</td></tr>
+        <tr><td><span class="method GET">GET</span></td><td><code>/api/complaints/all</code> <em>(updated)</em></td><td>admin, supervisor, quality, agent</td><td>Now server-side paginated — accepts <code>page</code>, <code>pageSize</code>, <code>status</code>, <code>priority</code>, <code>search</code>. Returns <code>{ data, total, page, pageSize }</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="sub">Frontend Additions (Phase 2)</h3>
+    <p>New shared components extracted to avoid duplication across pages:</p>
+    <table>
+      <thead><tr><th>Component / Utility</th><th>Location</th><th>Used by</th></tr></thead>
+      <tbody>
+        <tr><td><code>StatCard</code></td><td>components/StatCard.jsx</td><td>Dashboard (all roles)</td></tr>
+        <tr><td><code>HBar</code>, <code>VBars</code></td><td>components/ChartBars.jsx</td><td>Dashboard, Reports</td></tr>
+        <tr><td><code>SectionCard</code></td><td>components/SectionCard.jsx</td><td>Reports</td></tr>
+        <tr><td><code>StarRating</code></td><td>components/StarRating.jsx</td><td>Reports</td></tr>
+        <tr><td><code>PRIORITY_COLOR</code>, <code>SCORE_COLOR</code>, <code>STATUS_DOT_COLOR</code>, <code>overdueBy</code></td><td>utils/styleHelpers.js</td><td>Dashboard, Reports, Layout, ComplaintDetail, EscalationDashboard, SlaBreached</td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="sub">Project Structure Updates (Phase 2)</h3>
+    <div class="arch-box" style="padding:16px 20px;font-family:monospace;font-size:13px;line-height:1.9;color:#333;">
+      etl/<br>
+      &nbsp;&nbsp;├── generate_dataset.js &nbsp;&nbsp;&nbsp;← Synthetic CSV generator<br>
+      &nbsp;&nbsp;├── etl_import.js &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← Extract → Transform → Load<br>
+      &nbsp;&nbsp;├── etl_refresh_reports.js ← Repopulate reporting tables<br>
+      &nbsp;&nbsp;├── reset.js &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← Demo reset (wipe + reimport)<br>
+      &nbsp;&nbsp;├── complaints_dataset.csv ← Generated (gitignored)<br>
+      &nbsp;&nbsp;└── feedback_dataset.csv &nbsp;&nbsp;← Generated (gitignored)
+    </div>
+
   </div>
-  <div class="footer">CCRTS &nbsp;|&nbsp; High-Level Design Document &nbsp;|&nbsp; Version 1.0 &nbsp;|&nbsp; Phase 1 &nbsp;|&nbsp; To save as PDF: Ctrl+P → Save as PDF</div>
+  <div class="footer">CCRTS &nbsp;|&nbsp; High-Level Design Document &nbsp;|&nbsp; Version 2.0 &nbsp;|&nbsp; Phase 1 &amp; 2 &nbsp;|&nbsp; To save as PDF: Ctrl+P → Save as PDF</div>
 </div>
 </body>
 </html>

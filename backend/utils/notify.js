@@ -1,10 +1,18 @@
 const db = require("../config/db");
+const { sendEmail } = require("./mailer");
 
 const _insert = (user_id, complaint_id, message) => {
   try {
     db.prepare(
       "INSERT INTO notifications (user_id, complaint_id, message) VALUES (?, ?, ?)"
     ).run(user_id, complaint_id ?? null, message);
+
+    const user = db.prepare("SELECT email FROM users WHERE id = ?").get(user_id);
+    if (user?.email) {
+      sendEmail(user.email, complaint_id, message).catch(err =>
+        console.error("[Mailer]", err.message)
+      );
+    }
   } catch (err) {
     console.error("[Notify]", err.message);
   }

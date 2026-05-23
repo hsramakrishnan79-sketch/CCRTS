@@ -72,8 +72,8 @@
     <h1>Database Design Document</h1>
     <div class="subtitle">Customer Complaint &amp; Resolution Tracking System (CCRTS)</div>
     <div class="meta">
-      <div><label>Version</label><span>1.0</span></div>
-      <div><label>Phase</label><span>Phase 1</span></div>
+      <div><label>Version</label><span>2.0</span></div>
+      <div><label>Phase</label><span>Phase 1 &amp; 2</span></div>
       <div><label>Date</label><span>May 2026</span></div>
       <div><label>DB Engine</label><span>SQLite</span></div>
     </div>
@@ -107,8 +107,8 @@
     <p>CCRTS uses <strong>SQLite</strong> as its database engine, accessed via the Node.js built-in <code>node:sqlite</code> module using the synchronous <code>DatabaseSync</code> API. The database is a single file (<code>backend/database/ccrts.db</code>) that requires no external DB server to run.</p>
 
     <div class="summary-grid">
-      <div class="summary-card"><div class="num">10</div><div class="lbl">Tables</div></div>
-      <div class="summary-card"><div class="num">55+</div><div class="lbl">Columns (total)</div></div>
+      <div class="summary-card"><div class="num">14</div><div class="lbl">Tables</div></div>
+      <div class="summary-card"><div class="num">90+</div><div class="lbl">Columns (total)</div></div>
       <div class="summary-card"><div class="num">17</div><div class="lbl">CHECK / FK Constraints</div></div>
     </div>
 
@@ -397,6 +397,90 @@
     <code>SELECT * FROM complaints WHERE sla_deadline &lt; datetime('now') AND status NOT IN ('Resolved','Closed','Escalated')</code><br><br>
     Any matching complaints are automatically updated to 'Escalated' and notifications are sent to all supervisors and admins.</div>
 
+    <!-- Phase 2 Reporting Tables -->
+    <h2 class="section" id="s13">Phase 2 — Reporting Tables</h2>
+    <p>Four pre-computed analytics tables were added in Phase 2. They are populated by the ETL refresh script (<code>etl/etl_refresh_reports.js</code>) which truncates and repopulates all four tables in a single transaction. These tables are read-only from the application layer — all writes go through the ETL pipeline.</p>
+    <div class="callout">These tables use <code>UNIQUE</code> constraints on their natural keys so that <code>INSERT OR REPLACE</code> can safely re-run without duplicates. The <code>refreshed_at</code> column on every row records when the ETL last ran.</div>
+
+    <h3 class="sub">report_sla_summary</h3>
+    <p>Monthly SLA compliance aggregated by category and priority. Covers resolved/closed complaints only — open complaints are excluded since SLA is only measurable after resolution.</p>
+    <div class="table-card">
+      <div class="table-header"><h3>report_sla_summary</h3><span>9 columns · UNIQUE(period, category, priority)</span></div>
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><strong>id</strong></td><td>INTEGER</td><td><span class="badge pk">PK</span> <span class="badge def">AUTOINCREMENT</span></td><td>Row identifier</td></tr>
+          <tr><td>period</td><td>TEXT</td><td><span class="badge nn">NOT NULL</span></td><td>YYYY-MM month of complaint creation</td></tr>
+          <tr><td>category</td><td>TEXT</td><td><span class="badge nn">NOT NULL</span></td><td>Complaint category name</td></tr>
+          <tr><td>priority</td><td>TEXT</td><td><span class="badge nn">NOT NULL</span></td><td>Critical | High | Medium | Low</td></tr>
+          <tr><td>total</td><td>INTEGER</td><td><span class="badge def">DEFAULT 0</span></td><td>Total resolved complaints in this group</td></tr>
+          <tr><td>compliant</td><td>INTEGER</td><td><span class="badge def">DEFAULT 0</span></td><td>Resolved within SLA deadline</td></tr>
+          <tr><td>breached</td><td>INTEGER</td><td><span class="badge def">DEFAULT 0</span></td><td>Resolved after SLA deadline</td></tr>
+          <tr><td>compliance_rate</td><td>REAL</td><td><span class="badge def">DEFAULT 0</span></td><td>compliant / total × 100 (percentage)</td></tr>
+          <tr><td>refreshed_at</td><td>DATETIME</td><td><span class="badge def">DEFAULT CURRENT_TIMESTAMP</span></td><td>Last ETL run timestamp</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub">report_category_trends</h3>
+    <p>Monthly complaint volume, resolution, and escalation counts per category. Covers all complaints regardless of status.</p>
+    <div class="table-card">
+      <div class="table-header"><h3>report_category_trends</h3><span>8 columns · UNIQUE(period, category)</span></div>
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><strong>id</strong></td><td>INTEGER</td><td><span class="badge pk">PK</span> <span class="badge def">AUTOINCREMENT</span></td><td>Row identifier</td></tr>
+          <tr><td>period</td><td>TEXT</td><td><span class="badge nn">NOT NULL</span></td><td>YYYY-MM month</td></tr>
+          <tr><td>category</td><td>TEXT</td><td><span class="badge nn">NOT NULL</span></td><td>Complaint category name</td></tr>
+          <tr><td>total</td><td>INTEGER</td><td><span class="badge def">DEFAULT 0</span></td><td>Total complaints in this category/period</td></tr>
+          <tr><td>resolved</td><td>INTEGER</td><td><span class="badge def">DEFAULT 0</span></td><td>Count with status Resolved or Closed</td></tr>
+          <tr><td>escalated</td><td>INTEGER</td><td><span class="badge def">DEFAULT 0</span></td><td>Count with status Escalated</td></tr>
+          <tr><td>avg_resolution_hours</td><td>REAL</td><td></td><td>Average hours from creation to resolution</td></tr>
+          <tr><td>refreshed_at</td><td>DATETIME</td><td><span class="badge def">DEFAULT CURRENT_TIMESTAMP</span></td><td>Last ETL run timestamp</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub">report_agent_performance</h3>
+    <p>Monthly per-agent performance metrics including a composite score. Score formula: <code>(avgRating/5)×50 + (slaCompliance/100)×30 + (1−reopenRate)×20</code>. Null inputs use neutral defaults (rating=2.5, sla=50%) so agents with no data get a score of ~35 rather than zero.</p>
+    <div class="table-card">
+      <div class="table-header"><h3>report_agent_performance</h3><span>10 columns · UNIQUE(period, agent_id)</span></div>
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><strong>id</strong></td><td>INTEGER</td><td><span class="badge pk">PK</span> <span class="badge def">AUTOINCREMENT</span></td><td>Row identifier</td></tr>
+          <tr><td>period</td><td>TEXT</td><td><span class="badge nn">NOT NULL</span></td><td>YYYY-MM month</td></tr>
+          <tr><td>agent_id</td><td>INTEGER</td><td><span class="badge nn">NOT NULL</span></td><td>FK to users.id (not enforced — agent may be deleted)</td></tr>
+          <tr><td>agent_name</td><td>TEXT</td><td><span class="badge nn">NOT NULL</span></td><td>Denormalised agent name for display without JOIN</td></tr>
+          <tr><td>total_handled</td><td>INTEGER</td><td><span class="badge def">DEFAULT 0</span></td><td>Distinct complaints assigned to agent in period</td></tr>
+          <tr><td>avg_rating</td><td>REAL</td><td></td><td>Average customer feedback rating (1–5), NULL if no feedback</td></tr>
+          <tr><td>sla_compliance</td><td>REAL</td><td></td><td>% of resolved complaints meeting SLA, NULL if none resolved</td></tr>
+          <tr><td>reopened</td><td>INTEGER</td><td><span class="badge def">DEFAULT 0</span></td><td>Complaints reopened from Closed → Assigned</td></tr>
+          <tr><td>score</td><td>INTEGER</td><td><span class="badge def">DEFAULT 0</span></td><td>Composite performance score 0–100</td></tr>
+          <tr><td>refreshed_at</td><td>DATETIME</td><td><span class="badge def">DEFAULT CURRENT_TIMESTAMP</span></td><td>Last ETL run timestamp</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub">report_resolution_trends</h3>
+    <p>Monthly resolution time statistics (avg/min/max hours) by priority, covering all resolved/closed complaints.</p>
+    <div class="table-card">
+      <div class="table-header"><h3>report_resolution_trends</h3><span>8 columns · UNIQUE(period, priority)</span></div>
+      <table>
+        <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><strong>id</strong></td><td>INTEGER</td><td><span class="badge pk">PK</span> <span class="badge def">AUTOINCREMENT</span></td><td>Row identifier</td></tr>
+          <tr><td>period</td><td>TEXT</td><td><span class="badge nn">NOT NULL</span></td><td>YYYY-MM month</td></tr>
+          <tr><td>priority</td><td>TEXT</td><td><span class="badge nn">NOT NULL</span></td><td>Critical | High | Medium | Low</td></tr>
+          <tr><td>total_resolved</td><td>INTEGER</td><td><span class="badge def">DEFAULT 0</span></td><td>Count of resolved/closed complaints in period</td></tr>
+          <tr><td>avg_resolution_hours</td><td>REAL</td><td></td><td>Average hours from creation to resolution</td></tr>
+          <tr><td>min_resolution_hours</td><td>REAL</td><td></td><td>Fastest resolution in period</td></tr>
+          <tr><td>max_resolution_hours</td><td>REAL</td><td></td><td>Slowest resolution in period</td></tr>
+          <tr><td>refreshed_at</td><td>DATETIME</td><td><span class="badge def">DEFAULT CURRENT_TIMESTAMP</span></td><td>Last ETL run timestamp</td></tr>
+        </tbody>
+      </table>
+    </div>
+
     <!-- 12. Migration Strategy -->
     <h2 class="section" id="s11">14. Migration Strategy</h2>
     <p>All tables use <code>CREATE TABLE IF NOT EXISTS</code> — safe to run on both fresh and existing databases. The database file is created automatically on first server start; no external migration runner is required.</p>
@@ -423,7 +507,7 @@
     </table>
 
   </div>
-  <div class="footer">CCRTS &nbsp;|&nbsp; Database Design Document &nbsp;|&nbsp; Version 1.0 &nbsp;|&nbsp; Phase 1 &nbsp;|&nbsp; To save as PDF: Ctrl+P → Save as PDF</div>
+  <div class="footer">CCRTS &nbsp;|&nbsp; Database Design Document &nbsp;|&nbsp; Version 2.0 &nbsp;|&nbsp; Phase 1 &amp; 2 &nbsp;|&nbsp; To save as PDF: Ctrl+P → Save as PDF</div>
 </div>
 </body>
 </html>

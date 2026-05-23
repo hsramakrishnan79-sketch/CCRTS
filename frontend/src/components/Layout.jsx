@@ -6,6 +6,7 @@ import {
   FaExclamationTriangle, FaInbox, FaSignOutAlt, FaChartBar, FaUserCog, FaSpinner, FaClock,
 } from "react-icons/fa";
 import NotificationBell from "./NotificationBell";
+import { SCORE_COLOR } from "../utils/styleHelpers";
 
 // Nav items per role
 const NAV = {
@@ -48,8 +49,6 @@ const NAV = {
     { label: "Reports",        path: "/reports",        icon: <FaChartBar /> },
   ],
 };
-
-const SCORE_COLOR = (s) => s >= 80 ? "#28a745" : s >= 60 ? "#fd7e14" : "#dc3545";
 
 function Layout({ children }) {
   const navigate  = useNavigate();

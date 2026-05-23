@@ -61,8 +61,8 @@
     <h1>Requirement Specification Document</h1>
     <div class="subtitle">Customer Complaint &amp; Resolution Tracking System (CCRTS)</div>
     <div class="meta">
-      <div><label>Version</label><span>1.0</span></div>
-      <div><label>Phase</label><span>Phase 1</span></div>
+      <div><label>Version</label><span>2.0</span></div>
+      <div><label>Phase</label><span>Phase 1 &amp; 2</span></div>
       <div><label>Date</label><span>May 2026</span></div>
       <div><label>Status</label><span>Approved</span></div>
     </div>
@@ -83,6 +83,7 @@
       <li><a href="#s9">SLA Rules</a></li>
       <li><a href="#s10">Complaint Workflow</a></li>
       <li><a href="#s11">Agent-Category Management</a></li>
+      <li><a href="#s12">Phase 2 — ETL Pipeline &amp; Analytics</a></li>
     </ol>
   </div>
 
@@ -450,8 +451,93 @@
       </tbody>
     </table>
 
+    <!-- 12. Phase 2 -->
+    <h2 class="section" id="s12">12. Phase 2 — ETL Pipeline &amp; Analytics</h2>
+
+    <h3 class="sub">12.1 Objective</h3>
+    <p>Extend the Phase 1 complaint tracking platform with an ETL-based analytics pipeline that imports synthetic complaint datasets, populates pre-computed reporting tables, and exposes advanced analytics on the Reports page.</p>
+
+    <h3 class="sub">12.2 Scope</h3>
+    <ul>
+      <li>Import complaint and feedback datasets from CSV files</li>
+      <li>Track SLA violations across categories and priorities</li>
+      <li>Generate complaint trend reports by category and time period</li>
+      <li>Build resolution time analytics (avg / min / max hours per priority)</li>
+      <li>Compute and store agent performance scores (composite 0–100)</li>
+    </ul>
+
+    <h3 class="sub">12.3 ETL Workflow</h3>
+    <table>
+      <thead><tr><th>Step</th><th>Script</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td>1 — Extract</td><td><code>etl/generate_dataset.js</code></td><td>Generates <code>complaints_dataset.csv</code> (250 records) and <code>feedback_dataset.csv</code> (~106 records) with statistically distributed priorities, statuses, SLA deadlines, and agent workloads. Active complaints use timestamps anchored to "now" so SLA deadlines are always future.</td></tr>
+        <tr><td>2 — Transform</td><td><code>etl/etl_import.js</code></td><td>Validates required fields and enum membership; maps customer email → customer_id, agent email → agent_id, category name → category_id; skips duplicate complaint IDs (idempotent). Invalid rows are logged and excluded.</td></tr>
+        <tr><td>3 — Load &amp; Refresh</td><td><code>etl/etl_refresh_reports.js</code></td><td>Truncates and repopulates all 4 reporting tables in a single transaction. Safe to re-run at any time without creating duplicates.</td></tr>
+        <tr><td>Demo Reset</td><td><code>etl/reset.js</code></td><td>Deletes all CMP-016+ records (ETL data) and reruns the full pipeline. Run before every demo to ensure active complaints have future SLA deadlines.</td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="sub">12.4 Dataset Statistical Distribution</h3>
+    <table>
+      <thead><tr><th>Dimension</th><th>Distribution</th></tr></thead>
+      <tbody>
+        <tr><td>Priority</td><td>Critical 10%, High 20%, Medium 45%, Low 25%</td></tr>
+        <tr><td>Status (overall)</td><td>Resolved/Closed 60%, Active 40%</td></tr>
+        <tr><td>Active split</td><td>Open 20%, Assigned 25%, In Progress 25%, Pending 15%, Escalated 15%</td></tr>
+        <tr><td>SLA compliance</td><td>Critical 85%, High 75%, Medium 68%, Low 55%</td></tr>
+        <tr><td>Agent workload</td><td>agent1 40%, agent2 35%, agent3 25% (Pareto distribution)</td></tr>
+        <tr><td>Feedback rating</td><td>5★ 25%, 4★ 35%, 3★ 20%, 2★ 12%, 1★ 8%</td></tr>
+      </tbody>
+    </table>
+    <div class="callout">Minimum 200 records required — 250 complaints plus ~106 feedback records are generated. Active complaint timestamps are anchored to "now" so SLA deadlines remain in the future at import time. The data has a natural 72-hour shelf life before Low-priority active complaints start auto-escalating.</div>
+
+    <h3 class="sub">12.5 Reporting Tables</h3>
+    <table>
+      <thead><tr><th>Table</th><th>Granularity</th><th>Key Metrics</th></tr></thead>
+      <tbody>
+        <tr><td><code>report_sla_summary</code></td><td>period × category × priority</td><td>total, compliant, breached, compliance_rate</td></tr>
+        <tr><td><code>report_category_trends</code></td><td>period × category</td><td>total, resolved, escalated, avg_resolution_hours</td></tr>
+        <tr><td><code>report_agent_performance</code></td><td>period × agent</td><td>total_handled, avg_rating, sla_compliance, reopened, score (0–100)</td></tr>
+        <tr><td><code>report_resolution_trends</code></td><td>period × priority</td><td>total_resolved, avg/min/max resolution hours</td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="sub">12.6 Analytics Features</h3>
+    <table>
+      <thead><tr><th>Feature</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>SLA Breach Reports</td><td>Compliance rate by category and priority; active breach count; on-time vs breached breakdown. Filterable by time period.</td></tr>
+        <tr><td>Complaint Category Analysis</td><td>Volume trends per category per period; resolution and escalation rates over time.</td></tr>
+        <tr><td>Resolution Time Trends</td><td>Average, minimum, and maximum resolution hours per priority per period.</td></tr>
+        <tr><td>Agent Performance Reports</td><td>Total complaints handled, average customer rating (stars), SLA compliance %, reopen count, and composite score (0–100) per agent per period.</td></tr>
+      </tbody>
+    </table>
+
+    <h3 class="sub">12.7 Agent Performance Score</h3>
+    <table>
+      <thead><tr><th>Component</th><th>Weight</th><th>Formula</th></tr></thead>
+      <tbody>
+        <tr><td>Customer Rating</td><td>50 pts</td><td>(avgRating / 5) × 50</td></tr>
+        <tr><td>SLA Compliance</td><td>30 pts</td><td>(slaCompliance / 100) × 30</td></tr>
+        <tr><td>Reopen Rate</td><td>20 pts</td><td>(1 − reopenRate) × 20</td></tr>
+      </tbody>
+    </table>
+    <p>Score thresholds: <strong>≥ 80</strong> green (good) · <strong>≥ 60</strong> orange (watch) · <strong>&lt; 60</strong> red (at risk). Score badge displayed in agent sidebar and in Agent Performance tables across Admin and Quality dashboards.</p>
+
+    <h3 class="sub">12.8 New API Endpoints (Phase 2)</h3>
+    <table>
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>POST</td><td><code>/api/reports/refresh</code></td><td>admin</td><td>Triggers ETL refresh of all 4 reporting tables</td></tr>
+        <tr><td>GET</td><td><code>/api/dashboard/agent-performance</code></td><td>admin, quality</td><td>Last-30-day agent scores for dashboard performance tables</td></tr>
+        <tr><td>GET</td><td><code>/api/users/my-score</code></td><td>agent</td><td>Calling agent's own 30-day composite score and breakdown</td></tr>
+        <tr><td>GET</td><td><code>/api/complaints/all</code> (updated)</td><td>admin, supervisor, quality, agent</td><td>Now server-side paginated — accepts page, pageSize, status, priority, search filters</td></tr>
+        <tr><td>GET</td><td><code>/api/reports</code> (updated)</td><td>admin, supervisor, quality</td><td>Extended with slaSummary and resolutionTrends keys read from reporting tables</td></tr>
+      </tbody>
+    </table>
+
   </div>
-  <div class="footer">CCRTS &nbsp;|&nbsp; Requirement Specification Document &nbsp;|&nbsp; Version 1.0 &nbsp;|&nbsp; Phase 1 &nbsp;|&nbsp; To save as PDF: Ctrl+P → Save as PDF</div>
+  <div class="footer">CCRTS &nbsp;|&nbsp; Requirement Specification Document &nbsp;|&nbsp; Version 2.0 &nbsp;|&nbsp; Phase 1 &amp; 2 &nbsp;|&nbsp; To save as PDF: Ctrl+P → Save as PDF</div>
 </div>
 </body>
 </html>

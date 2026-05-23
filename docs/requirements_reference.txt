@@ -129,3 +129,85 @@ Feedback:         FeedbackID, ComplaintID, Rating, Comments
 Login Page, Registration Page, Dashboard, Complaint Registration,
 Complaint Tracking, Agent Work Queue, Escalation Dashboard,
 Reports Dashboard, User Management
+
+
+===========================================================
+Phase 2 - Customer Complaint & Resolution Tracking System with ETL Pipeline
+===========================================================
+
+OBJECTIVE
+Extend the complaint tracking platform with ETL-based complaint analytics
+and SLA reporting.
+
+────────────────────────────────────────────────────────────
+PHASE 2 SCOPE
+────────────────────────────────────────────────────────────
+- Import complaint datasets
+- Track SLA violations
+- Generate complaint trend reports
+- Build resolution analytics
+
+────────────────────────────────────────────────────────────
+ETL WORKFLOW
+────────────────────────────────────────────────────────────
+Step 1  Extract — Parse complaint and feedback records from CSV files
+Step 2  Transform — Validate priority/status fields, map foreign keys
+        (customer email → customer_id, agent email → agent_id,
+         category name → category_id), skip duplicates (idempotent)
+Step 3  Load — Insert validated records into the operational complaints
+        and feedback tables using parameterized SQL
+
+ETL Scripts:
+  etl/generate_dataset.js   Synthetic dataset generator (250 records)
+  etl/etl_import.js         Extract → Transform → Load pipeline
+  etl/etl_refresh_reports.js Repopulates all 4 reporting tables from
+                              operational data (safe to re-run)
+  etl/reset.js              Demo reset — wipes ETL data and reruns
+                              full pipeline with fresh timestamps
+
+────────────────────────────────────────────────────────────
+DATASET GUIDANCE
+────────────────────────────────────────────────────────────
+Required fields: complaint category, priority, SLA deadline, resolution time
+Minimum records: 200  (implemented: 250 complaints + ~106 feedback records)
+
+Statistical distribution enforced:
+  Priority      Critical 10%, High 20%, Medium 45%, Low 25%
+  Status        Resolved/Closed 60%, Active 40%
+  Active split  Open 20%, Assigned 25%, In Progress 25%,
+                Pending 15%, Escalated 15%
+  SLA compliance  Critical 85%, High 75%, Medium 68%, Low 55%
+  Agent workload  agent1 40%, agent2 35%, agent3 25% (Pareto)
+  Feedback rating 5★ 25%, 4★ 35%, 3★ 20%, 2★ 12%, 1★ 8%
+
+Active complaint timestamps are anchored to "now" so SLA deadlines
+remain in the future at import time. Run etl/reset.js before demos.
+
+────────────────────────────────────────────────────────────
+ANALYTICS FEATURES
+────────────────────────────────────────────────────────────
+SLA Breach Reports       Compliance rate by category and priority,
+                         active breaches count, on-time vs breached
+Complaint Category       Volume trends per category per period,
+Analysis                 resolution and escalation rates
+Resolution Time          Avg/min/max resolution hours per priority
+Trends                   per period
+Agent Performance        Total handled, avg rating, SLA compliance %,
+Reports                  reopen count, composite score (0–100)
+                         Score = (avgRating/5)×50 + (slaCompliance/100)×30
+                                 + (1 − reopenRate)×20
+
+────────────────────────────────────────────────────────────
+EXPECTED DELIVERABLES — STATUS
+────────────────────────────────────────────────────────────
+ETL scripts              ✓ generate_dataset.js, etl_import.js,
+                           etl_refresh_reports.js, reset.js
+Reporting tables         ✓ report_sla_summary, report_category_trends,
+                           report_agent_performance, report_resolution_trends
+Analytics dashboards     ✓ Reports page with period filter, overview stats,
+                           SLA compliance analysis, resolution trends,
+                           agent performance, category/priority charts
+Updated APIs             ✓ GET /api/reports (extended with reporting tables)
+                           POST /api/reports/refresh (admin only)
+                           GET /api/dashboard/agent-performance
+                           GET /api/users/my-score (agent score badge)

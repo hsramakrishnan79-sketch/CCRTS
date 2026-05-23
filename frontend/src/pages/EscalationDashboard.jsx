@@ -2,20 +2,12 @@ import { useEffect, useState } from "react";
 import API from "../services/api";
 import Layout from "../components/Layout";
 import { useToast } from "../context/ToastContext";
-import { statusClass, priorityClass, isSlaBreached } from "../utils/styleHelpers";
+import { statusClass, priorityClass, isSlaBreached, overdueBy } from "../utils/styleHelpers";
 import ComplaintSidePanel from "../components/ComplaintSidePanel";
 import RowActionsMenu from "../components/RowActionsMenu";
 import Pagination from "../components/Pagination";
 
 const PAGE_SIZE = 10;
-
-function timeSince(dateStr) {
-  if (!dateStr) return "—";
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const h = Math.floor(diff / 3600000);
-  if (h < 24) return `${h}h overdue`;
-  return `${Math.floor(h / 24)}d overdue`;
-}
 
 export default function EscalationDashboard() {
   const showToast = useToast();
@@ -115,7 +107,7 @@ export default function EscalationDashboard() {
                       {c.sla_deadline ? new Date(c.sla_deadline).toLocaleString() : "—"}
                     </td>
                     <td style={{ color: "#dc3545", fontWeight: 600, fontSize: "12px" }}>
-                      {breached ? timeSince(c.sla_deadline) : "—"}
+                      {breached ? overdueBy(c.sla_deadline) : "—"}
                     </td>
                     <td className="text-sm">{c.assigned_to_name || <span className="text-muted">Unassigned</span>}</td>
                     <td style={{ textAlign: "center" }}>

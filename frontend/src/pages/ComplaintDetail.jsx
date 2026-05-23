@@ -3,19 +3,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import API from "../services/api";
 import Layout from "../components/Layout";
 import { useToast } from "../context/ToastContext";
-import { statusClass } from "../utils/styleHelpers";
+import { statusClass, PRIORITY_COLOR, STATUS_DOT_COLOR } from "../utils/styleHelpers";
 import FileViewerModal from "../components/FileViewerModal";
 import InfoRow from "../components/InfoRow";
-
-const PRIORITY_COLOR = {
-  Low: "#28a745", Medium: "#ffc107", High: "#fd7e14", Critical: "#dc3545",
-};
-
-const STATUS_DOT_COLOR = {
-  "Open": "#383d41", "Assigned": "#004085", "In Progress": "#0c5460",
-  "Pending Customer Response": "#856404", "Escalated": "#721c24",
-  "Resolved": "#155724", "Closed": "#1b1e21",
-};
 
 const BASE_URL = "http://127.0.0.1:3001";
 

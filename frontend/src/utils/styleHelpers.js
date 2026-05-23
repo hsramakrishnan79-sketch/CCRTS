@@ -36,3 +36,28 @@ export const roleBadgeClass = (role) => {
   };
   return map[role] ?? "role-badge";
 };
+
+export const PRIORITY_COLOR = {
+  Critical: "#dc3545", High: "#fd7e14", Medium: "#ffc107", Low: "#28a745",
+};
+
+export const STATUS_COLOR = {
+  "Open": "#6c757d", "Assigned": "#004085", "In Progress": "#0c5460",
+  "Pending Customer Response": "#856404", "Escalated": "#721c24",
+  "Resolved": "#155724", "Closed": "#383d41",
+};
+
+export const STATUS_DOT_COLOR = {
+  "Open": "#383d41", "Assigned": "#004085", "In Progress": "#0c5460",
+  "Pending Customer Response": "#856404", "Escalated": "#721c24",
+  "Resolved": "#155724", "Closed": "#6c757d",
+};
+
+export const SCORE_COLOR = (s) =>
+  s >= 80 ? "#28a745" : s >= 60 ? "#fd7e14" : "#dc3545";
+
+export const overdueBy = (dateStr) => {
+  if (!dateStr) return "—";
+  const h = Math.floor((Date.now() - new Date(dateStr).getTime()) / 3_600_000);
+  return h < 24 ? `${h}h overdue` : `${Math.floor(h / 24)}d overdue`;
+};

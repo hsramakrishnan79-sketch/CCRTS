@@ -61,6 +61,9 @@ function Login() {
         </button>
 
         <p className="text-center mt-16">
+          <Link to="/forgot-password" style={{ fontSize: "13px", color: "#888" }}>Forgot password?</Link>
+        </p>
+        <p className="text-center mt-16">
           Don't have an account? <Link to="/register">Register</Link>
         </p>
       </div>

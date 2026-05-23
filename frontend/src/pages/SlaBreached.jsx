@@ -2,20 +2,12 @@ import { useEffect, useState } from "react";
 import API from "../services/api";
 import Layout from "../components/Layout";
 import { useToast } from "../context/ToastContext";
-import { statusClass, priorityClass } from "../utils/styleHelpers";
+import { statusClass, priorityClass, overdueBy } from "../utils/styleHelpers";
 import ComplaintSidePanel from "../components/ComplaintSidePanel";
 import RowActionsMenu from "../components/RowActionsMenu";
 import Pagination from "../components/Pagination";
 
 const PAGE_SIZE = 10;
-
-function overdueBy(dateStr) {
-  if (!dateStr) return "—";
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const h = Math.floor(diff / 3600000);
-  if (h < 24) return `${h}h overdue`;
-  return `${Math.floor(h / 24)}d overdue`;
-}
 
 export default function SlaBreached() {
   const showToast = useToast();

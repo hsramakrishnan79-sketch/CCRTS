@@ -7,27 +7,9 @@ import {
   FaCheckCircle, FaArrowUp, FaClock, FaInbox,
   FaUsers, FaRedo, FaStar, FaChartBar,
 } from "react-icons/fa";
-
-// ── Shared components ─────────────────────────────────────────────────────────
-function StatCard({ label, value, icon, gradient, light, onClick, sub }) {
-  return (
-    <div
-      onClick={onClick}
-      style={{
-        borderRadius: "16px", padding: "24px", boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-        textAlign: "center", background: gradient, color: light ? "#333" : "white",
-        cursor: onClick ? "pointer" : "default", transition: "transform 0.15s",
-      }}
-      onMouseEnter={(e) => { if (onClick) e.currentTarget.style.transform = "translateY(-2px)"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.transform = ""; }}
-    >
-      {icon}
-      <h3 style={{ margin: "10px 0 4px", fontSize: "13px" }}>{label}</h3>
-      <h1 style={{ margin: 0, fontSize: "34px" }}>{value ?? "—"}</h1>
-      {sub && <p style={{ margin: "4px 0 0", fontSize: "11px", opacity: 0.8 }}>{sub}</p>}
-    </div>
-  );
-}
+import StatCard from "../components/StatCard";
+import { HBar, VBars } from "../components/ChartBars";
+import { SCORE_COLOR } from "../utils/styleHelpers";
 
 function QuickLink({ label, path, icon, color }) {
   const navigate = useNavigate();
@@ -52,49 +34,8 @@ function SectionTitle({ children }) {
   );
 }
 
-// ── Vertical bar chart ────────────────────────────────────────────────────────
-function VBars({ data, keyX, keyY, color = "#1e3c72", height = 120 }) {
-  const max = Math.max(...data.map((d) => d[keyY] ?? 0), 1);
-  return (
-    <div style={{ display: "flex", alignItems: "flex-end", gap: "6px", height }}>
-      {data.map((d, i) => (
-        <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-          <span style={{ fontSize: "10px", fontWeight: 600, color: "#555" }}>
-            {d[keyY] > 0 ? d[keyY] : ""}
-          </span>
-          <div
-            style={{
-              width: "100%", background: color, borderRadius: "4px 4px 0 0",
-              height: `${((d[keyY] ?? 0) / max) * (height - 30)}px`,
-              minHeight: (d[keyY] ?? 0) > 0 ? "4px" : "0",
-            }}
-          />
-          <span style={{ fontSize: "9px", color: "#aaa", whiteSpace: "nowrap" }}>
-            {String(d[keyX]).slice(-5)}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ── Horizontal bar ────────────────────────────────────────────────────────────
-function HBar({ label, count, max, color = "#1e3c72" }) {
-  const pct = max > 0 ? (count / max) * 100 : 0;
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
-      <span style={{ width: "160px", fontSize: "13px", color: "#555", flexShrink: 0, textAlign: "right" }}>{label}</span>
-      <div style={{ flex: 1, background: "#f0f0f0", borderRadius: "4px", height: "20px", overflow: "hidden" }}>
-        <div style={{ width: `${pct}%`, background: color, height: "100%", borderRadius: "4px", transition: "width 0.4s" }} />
-      </div>
-      <span style={{ width: "30px", fontWeight: 700, fontSize: "13px", color }}>{count}</span>
-    </div>
-  );
-}
-
 // ── Agent performance tables (shared by Admin + Quality) ─────────────────────
-const SCORE_COLOR = (s) => s >= 80 ? "#28a745" : s >= 60 ? "#fd7e14" : "#dc3545";
-const SCORE_BG    = (s) => s >= 80 ? "#f0fff4" : s >= 60 ? "#fff8f0" : "#fff5f5";
+const SCORE_BG = (s) => s >= 80 ? "#f0fff4" : s >= 60 ? "#fff8f0" : "#fff5f5";
 
 function AgentPerformanceTables() {
   const [data, setData]     = useState(null);

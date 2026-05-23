@@ -1,71 +1,14 @@
 import { useEffect, useState } from "react";
 import API from "../services/api";
 import Layout from "../components/Layout";
-
-const PRIORITY_COLOR = { Critical: "#dc3545", High: "#fd7e14", Medium: "#ffc107", Low: "#28a745" };
-const SCORE_COLOR = (s) => s >= 80 ? "#28a745" : s >= 60 ? "#fd7e14" : "#dc3545";
+import SectionCard from "../components/SectionCard";
+import StarRating from "../components/StarRating";
+import { HBar, VBars } from "../components/ChartBars";
+import { PRIORITY_COLOR, SCORE_COLOR } from "../utils/styleHelpers";
 
 const THIS_YEAR  = new Date().getFullYear();
 const THIS_MONTH = `${THIS_YEAR}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
 const YEARS      = Array.from({ length: 5 }, (_, i) => THIS_YEAR - i);
-
-// ── Reusable horizontal bar chart ────────────────────────────────────────────
-function HBar({ label, count, max, color = "#1e3c72" }) {
-  const pct = max > 0 ? (count / max) * 100 : 0;
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
-      <span style={{ width: "180px", fontSize: "13px", color: "#555", flexShrink: 0, textAlign: "right" }}>{label}</span>
-      <div style={{ flex: 1, background: "#f0f0f0", borderRadius: "4px", height: "22px", overflow: "hidden" }}>
-        <div style={{ width: `${pct}%`, background: color, height: "100%", borderRadius: "4px", transition: "width 0.4s" }} />
-      </div>
-      <span style={{ width: "30px", fontWeight: 700, fontSize: "13px", color }}>{count}</span>
-    </div>
-  );
-}
-
-// ── Vertical bar chart ────────────────────────────────────────────────────────
-function VBars({ data, labelKey = "month" }) {
-  const max = Math.max(...data.map((d) => d.count), 1);
-  return (
-    <div style={{ display: "flex", alignItems: "flex-end", gap: "10px", height: "120px" }}>
-      {data.map((d) => (
-        <div key={d[labelKey]} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-          <span style={{ fontSize: "11px", fontWeight: 600, color: "#555" }}>{d.count}</span>
-          <div style={{
-            width: "100%", background: "#1e3c72", borderRadius: "4px 4px 0 0",
-            height: `${(d.count / max) * 90}px`, minHeight: d.count > 0 ? "4px" : "0",
-          }} />
-          <span style={{ fontSize: "10px", color: "#aaa", whiteSpace: "nowrap" }}>
-            {String(d[labelKey]).slice(-5)}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ── Star rating display ──────────────────────────────────────────────────────
-function Stars({ rating }) {
-  return (
-    <span>
-      {[1, 2, 3, 4, 5].map((n) => (
-        <span key={n} style={{ color: n <= Math.round(rating) ? "#ffc107" : "#ddd", fontSize: "18px" }}>★</span>
-      ))}
-    </span>
-  );
-}
-
-// ── Section card ─────────────────────────────────────────────────────────────
-function SectionCard({ title, children }) {
-  return (
-    <div className="card mb-24">
-      <h3 className="text-primary" style={{ fontSize: "15px", fontWeight: 700, borderBottom: "2px solid #f0f0f0", paddingBottom: "10px", marginBottom: "20px" }}>
-        {title}
-      </h3>
-      {children}
-    </div>
-  );
-}
 
 export default function Reports() {
   const userRole = JSON.parse(localStorage.getItem("user"))?.role;
@@ -473,7 +416,7 @@ export default function Reports() {
               <div style={{ fontSize: "56px", fontWeight: 700, color: "#ffc107", lineHeight: 1 }}>
                 {satisfaction.avgRating ?? "—"}
               </div>
-              <Stars rating={satisfaction.avgRating ?? 0} />
+              <StarRating rating={satisfaction.avgRating ?? 0} />
               <p className="text-muted text-sm mt-8">
                 {satisfaction.total} review{satisfaction.total !== 1 ? "s" : ""}
               </p>
