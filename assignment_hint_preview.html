@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Assignment Hint — Combined Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f4f6f9; color: #333; padding: 32px 24px; }
+
+  h1 { font-size: 22px; font-weight: 800; color: #1e3c72; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #aaa; margin-bottom: 32px; }
+
+  .two-col { display: grid; grid-template-columns: 340px 1fr; gap: 32px; align-items: flex-start; }
+
+  /* ── Panel shell ─────────────────────────────── */
+  .panel { background: white; border-radius: 14px; box-shadow: 0 4px 24px rgba(0,0,0,0.10); overflow: hidden; }
+  .panel-header { background: #1e3c72; color: white; padding: 16px 20px; }
+  .complaint-id { font-size: 15px; font-weight: 800; margin-bottom: 6px; }
+  .badges { display: flex; gap: 6px; }
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+  .badge-open     { background: rgba(255,255,255,0.15); color: white; }
+  .badge-critical { background: #f8d7da; color: #721c24; }
+  .badge-sla      { background: #ffc107; color: #333; }
+
+  .panel-body { padding: 20px; }
+
+  /* ── Info rows ───────────────────────────────── */
+  .info-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 1px solid #f8f8f8; }
+  .info-label { color: #aaa; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; }
+  .info-val   { color: #333; font-weight: 500; }
+
+  .divider { border: none; border-top: 2px solid #f0f0f0; margin: 16px 0; }
+
+  /* ── Form ────────────────────────────────────── */
+  .form-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: #aaa; display: block; margin-bottom: 6px; }
+  .select-row { display: flex; gap: 8px; }
+  .form-select { flex: 1; padding: 8px 10px; border: 1.5px solid #ddd; border-radius: 7px; font-size: 13px; color: #333; background: white; cursor: pointer; }
+  .form-select:focus { outline: none; border-color: #1e3c72; }
+  .btn { padding: 8px 16px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
+  .btn-primary { background: #1e3c72; color: white; }
+  .btn-ghost   { background: #f0f0f0; color: #555; }
+  .btn-row     { display: flex; gap: 8px; margin-top: 12px; }
+
+  /* ── Hint block ──────────────────────────────── */
+  .hint-block { margin-top: 10px; padding: 11px 13px; border-radius: 8px; font-size: 12px; border: 1px solid transparent; }
+  .hint-green { background: #f0fff4; border-color: #b2dfdb; color: #155724; }
+  .hint-amber { background: #fff8f0; border-color: #ffd180; color: #7d4e00; }
+  .hint-red   { background: #fff5f5; border-color: #ffcdd2; color: #7f1d1d; }
+
+  .hint-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .hint-name { font-size: 13px; font-weight: 700; }
+  .hint-count { font-size: 12px; font-weight: 700; }
+
+  /* ── Priority segmented bar ──────────────────── */
+  .seg-bar-wrap { position: relative; background: #f0f0f0; border-radius: 6px; height: 12px; overflow: hidden; flex: 1; }
+  .seg-bar { display: flex; height: 100%; }
+  .seg { height: 100%; transition: width 0.4s; }
+  .seg-critical { background: #dc3545; }
+  .seg-high     { background: #fd7e14; }
+  .seg-medium   { background: #ffc107; }
+  .seg-low      { background: #28a745; }
+
+  .bar-row { display: flex; align-items: center; gap: 8px; }
+  .bar-pct { font-size: 11px; font-weight: 800; min-width: 32px; text-align: right; }
+
+  /* ── Priority legend ─────────────────────────── */
+  .legend { display: flex; gap: 10px; margin-top: 7px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: #888; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+  /* ── Recommend tip ───────────────────────────── */
+  .rec-tip { margin-top: 8px; background: #f0f7ff; border: 1px solid #bdd7f5; border-radius: 7px; padding: 8px 12px; font-size: 12px; color: #1e3c72; }
+  .rec-tip strong { font-weight: 700; }
+
+  /* ── Right: explanation panel ────────────────── */
+  .explain { display: flex; flex-direction: column; gap: 20px; }
+  .explain-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 6px rgba(0,0,0,0.07); }
+  .explain-card h3 { font-size: 14px; font-weight: 700; color: #1e3c72; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0; }
+  .explain-card p  { font-size: 13px; color: #555; line-height: 1.6; }
+  .explain-card ul { padding-left: 16px; font-size: 13px; color: #555; line-height: 1.9; }
+
+  .tag { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 11px; font-weight: 700; margin-right: 4px; }
+  .tag-1 { background: #ede7f6; color: #4a148c; }
+  .tag-2 { background: #fff3e0; color: #7d4e00; }
+  .tag-4 { background: #e8f5e9; color: #1b5e20; }
+
+  /* ── All agents reference ────────────────────── */
+  .all-agents { display: flex; flex-direction: column; gap: 8px; }
+  .agent-ref-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f4f4f4; }
+  .agent-ref-name { font-size: 13px; font-weight: 600; width: 120px; color: #1e3c72; flex-shrink: 0; }
+  .agent-ref-bar  { flex: 1; }
+  .agent-ref-count { font-size: 11px; font-weight: 700; width: 40px; text-align: right; color: #555; }
+</style>
+</head>
+<body>
+
+<h1>Assignment Hint — Combined Design Preview</h1>
+<p class="subtitle">Options 1 + 2 + 4 combined with priority-segmented capacity bar</p>
+
+<div class="two-col">
+
+  <!-- ── Left: Interactive side panel ───────────── -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="complaint-id">CMP-20250523-004</div>
+      <div class="badges">
+        <span class="badge badge-open">Open</span>
+        <span class="badge badge-critical">Critical · Billing</span>
+        <span class="badge badge-sla">⚠ SLA</span>
+      </div>
+    </div>
+    <div class="panel-body">
+
+      <div class="info-row"><span class="info-label">Customer</span><span class="info-val">Rajesh Iyer</span></div>
+      <div class="info-row"><span class="info-label">Category</span><span class="info-val">Billing</span></div>
+      <div class="info-row"><span class="info-label">Created</span><span class="info-val">23 May 2026, 09:14</span></div>
+      <div class="info-row"><span class="info-label">SLA Deadline</span><span class="info-val" style="color:#dc3545;font-weight:700">23 May 2026, 13:14</span></div>
+
+      <hr class="divider" />
+
+      <p class="form-label">Assign Agent <span style="color:#dc3545">*</span></p>
+
+      <!-- Recommendation tip always visible — Option 4 -->
+      <div class="rec-tip" id="rec-tip">
+        💡 <strong>Bob Kumar</strong> is recommended — lightest load in Billing (2 / 8 · 25%)
+      </div>
+
+      <!-- Dropdown — Option 1: load in text -->
+      <div class="select-row" style="margin-top:10px">
+        <select class="form-select" onchange="onAgentChange(this.value)">
+          <option value="">— Select agent —</option>
+          <option value="bob">★ Bob Kumar — 2 / 8</option>
+          <option value="alice">Alice Chen — 3 / 10</option>
+          <option value="charlie">Charlie Davis — 7 / 10</option>
+          <option value="diana">⚠ Diana Patel — 11 / 12</option>
+        </select>
+        <button class="btn btn-primary">Assign</button>
+      </div>
+
+      <!-- Hint block — Option 2: appears after selection -->
+      <div id="hint-block" style="display:none"></div>
+
+      <div class="btn-row">
+        <button class="btn btn-ghost" style="flex:1">Cancel</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Right: explanation ────────────────────── -->
+  <div class="explain">
+
+    <div class="explain-card">
+      <h3>What's combined in this design</h3>
+      <ul>
+        <li><span class="tag tag-1">Option 1</span> Load count shown in each dropdown option</li>
+        <li><span class="tag tag-2">Option 2</span> Hint block appears after an agent is selected</li>
+        <li><span class="tag tag-4">Option 4</span> Recommended agent tip shown above the dropdown</li>
+        <li>Priority-segmented bar shows <em>what kind</em> of work the agent is carrying</li>
+        <li>Percentage at the end of the bar · colour-coded green → red</li>
+      </ul>
+    </div>
+
+    <div class="explain-card">
+      <h3>Priority bar legend</h3>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px"><div style="width:14px;height:14px;border-radius:3px;background:#dc3545"></div> <strong>Critical</strong> — must resolve within 4 hours</div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px"><div style="width:14px;height:14px;border-radius:3px;background:#fd7e14"></div> <strong>High</strong> — 24 hours SLA</div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px"><div style="width:14px;height:14px;border-radius:3px;background:#ffc107"></div> <strong>Medium</strong> — 48 hours SLA</div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px"><div style="width:14px;height:14px;border-radius:3px;background:#28a745"></div> <strong>Low</strong> — 72 hours SLA</div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px"><div style="width:14px;height:14px;border-radius:3px;background:#f0f0f0;border:1px solid #ddd"></div> <strong>Free capacity</strong></div>
+      </div>
+    </div>
+
+    <div class="explain-card">
+      <h3>All agents — current load</h3>
+      <div class="all-agents" id="all-agents-ref"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const AGENTS = {
+    bob:     { name: "Bob Kumar",     max: 8,  used: 2,  pct: 25, priority: { c:0, h:1, m:1, l:0 }, status: "green",  icon: "★", label: "Lightest" },
+    alice:   { name: "Alice Chen",    max: 10, used: 3,  pct: 30, priority: { c:1, h:1, m:1, l:0 }, status: "green",  icon: "✓", label: "Available" },
+    charlie: { name: "Charlie Davis", max: 10, used: 7,  pct: 70, priority: { c:1, h:2, m:3, l:1 }, status: "amber",  icon: "⚠", label: "Busy" },
+    diana:   { name: "Diana Patel",   max: 12, used: 11, pct: 92, priority: { c:3, h:4, m:3, l:1 }, status: "red",    icon: "✕", label: "Near Full" },
+  };
+
+  function buildBar(a) {
+    const maxW = 100;
+    const cW = (a.priority.c / a.max) * maxW;
+    const hW = (a.priority.h / a.max) * maxW;
+    const mW = (a.priority.m / a.max) * maxW;
+    const lW = (a.priority.l / a.max) * maxW;
+    return `
+      <div class="bar-row">
+        <div class="seg-bar-wrap">
+          <div class="seg-bar">
+            <div class="seg seg-critical" style="width:${cW}%"></div>
+            <div class="seg seg-high"     style="width:${hW}%"></div>
+            <div class="seg seg-medium"   style="width:${mW}%"></div>
+            <div class="seg seg-low"      style="width:${lW}%"></div>
+          </div>
+        </div>
+        <span class="bar-pct" style="color:${a.status==='green'?'#28a745':a.status==='amber'?'#fd7e14':'#dc3545'}">${a.pct}%</span>
+      </div>
+      <div class="legend">
+        ${a.priority.c>0?`<span class="legend-item"><span class="legend-dot" style="background:#dc3545"></span>${a.priority.c} Critical</span>`:''}
+        ${a.priority.h>0?`<span class="legend-item"><span class="legend-dot" style="background:#fd7e14"></span>${a.priority.h} High</span>`:''}
+        ${a.priority.m>0?`<span class="legend-item"><span class="legend-dot" style="background:#ffc107"></span>${a.priority.m} Medium</span>`:''}
+        ${a.priority.l>0?`<span class="legend-item"><span class="legend-dot" style="background:#28a745"></span>${a.priority.l} Low</span>`:''}
+        <span class="legend-item" style="margin-left:auto"><strong>${a.used} / ${a.max}</strong> assigned</span>
+      </div>`;
+  }
+
+  function onAgentChange(key) {
+    const block = document.getElementById("hint-block");
+    if (!key) { block.style.display = "none"; return; }
+    const a = AGENTS[key];
+    const cls = `hint-${a.status}`;
+    const statusColor = a.status === "green" ? "#28a745" : a.status === "amber" ? "#fd7e14" : "#dc3545";
+    block.className = `hint-block ${cls}`;
+    block.style.display = "block";
+    block.innerHTML = `
+      <div class="hint-top">
+        <span class="hint-name">${a.icon} ${a.name}</span>
+        <span class="hint-count" style="color:${statusColor}">${a.label}</span>
+      </div>
+      ${buildBar(a)}`;
+  }
+
+  // Build all-agents reference
+  const ref = document.getElementById("all-agents-ref");
+  Object.values(AGENTS).forEach(a => {
+    const statusColor = a.status === "green" ? "#28a745" : a.status === "amber" ? "#fd7e14" : "#dc3545";
+    const cW = (a.priority.c / a.max) * 100;
+    const hW = (a.priority.h / a.max) * 100;
+    const mW = (a.priority.m / a.max) * 100;
+    const lW = (a.priority.l / a.max) * 100;
+    ref.innerHTML += `
+      <div class="agent-ref-row">
+        <span class="agent-ref-name">${a.name}</span>
+        <div class="agent-ref-bar">
+          <div class="seg-bar-wrap">
+            <div class="seg-bar">
+              <div class="seg seg-critical" style="width:${cW}%"></div>
+              <div class="seg seg-high"     style="width:${hW}%"></div>
+              <div class="seg seg-medium"   style="width:${mW}%"></div>
+              <div class="seg seg-low"      style="width:${lW}%"></div>
+            </div>
+          </div>
+        </div>
+        <span class="agent-ref-count" style="color:${statusColor}">${a.used}/${a.max}</span>
+      </div>`;
+  });
+</script>
+</body>
+</html>

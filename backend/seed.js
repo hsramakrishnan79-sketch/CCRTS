@@ -30,6 +30,7 @@ db.exec(`
   DELETE FROM complaint_history;
   DELETE FROM complaints;
   DELETE FROM agent_categories;
+  DELETE FROM agent_settings;
   DELETE FROM users;
 `);
 
@@ -78,6 +79,16 @@ const rohit  = getUser("rohit@email.com");
 const meena  = getUser("meena@email.com");
 const vikram = getUser("vikram@email.com");
 const sneha  = getUser("sneha@email.com");
+
+// ── AGENT SETTINGS (max capacity per agent) ───────────────────────────────────
+console.log("Inserting agent settings...");
+const insertAgentSetting = db.prepare(
+  "INSERT OR REPLACE INTO agent_settings (agent_id, max_capacity) VALUES (?, ?)"
+);
+// max_capacity = 5 for all agents (grand avg monthly throughput from ETL: 4.4, rounded up)
+insertAgentSetting.run(agent1.id, 5);  // Arjun Mehta   — 2 active / 5 = 40%
+insertAgentSetting.run(agent2.id, 5);  // Priya Nair    — 2 active / 5 = 40%
+insertAgentSetting.run(agent3.id, 5);  // Karthik Rajan — 3 active / 5 = 60%
 
 // ── AGENT-CATEGORY MAPPINGS ───────────────────────────────────────────────────
 console.log("Inserting agent-category mappings...");

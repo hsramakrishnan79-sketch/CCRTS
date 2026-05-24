@@ -16,6 +16,7 @@ const notificationRoutes     = require("./routes/notificationRoutes");
 const reportsRoutes          = require("./routes/reportsRoutes");
 const agentCategoryRoutes    = require("./routes/agentCategoryRoutes");
 const dashboardRoutes        = require("./routes/dashboardRoutes");
+const workloadRoutes         = require("./routes/workloadRoutes");
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use("/api/notifications",         notificationRoutes);
 app.use("/api/reports",               reportsRoutes);
 app.use("/api/agent-categories",      agentCategoryRoutes);
 app.use("/api/dashboard",             dashboardRoutes);
+app.use("/api/workload",              workloadRoutes);
 
 app.get("/", (_req, res) => res.send("CCRTS Backend Running"));
 

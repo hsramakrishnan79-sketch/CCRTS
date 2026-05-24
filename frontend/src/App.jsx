@@ -18,6 +18,7 @@ import Reports from "./pages/Reports";
 import AdminAssignmentQueue from "./pages/AdminAssignmentQueue";
 import AdminStatusQueue from "./pages/AdminStatusQueue";
 import SlaBreached from "./pages/SlaBreached";
+import AgentWorkload from "./pages/AgentWorkload";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Redirects to /dashboard if the user's role is not in the allowed list
@@ -127,6 +128,14 @@ function App() {
           <ProtectedRoute>
             <RoleRoute roles={["customer"]}>
               <MyComplaints />
+            </RoleRoute>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/agent-workload" element={
+          <ProtectedRoute>
+            <RoleRoute roles={["admin", "supervisor"]}>
+              <AgentWorkload />
             </RoleRoute>
           </ProtectedRoute>
         } />

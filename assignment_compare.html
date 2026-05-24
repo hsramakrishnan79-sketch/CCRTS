@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Assignment Hint — A vs B vs C vs D vs E</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f4f6f9; color: #333; padding: 32px 24px; min-width: 1100px; }
+
+  h1 { font-size: 22px; font-weight: 800; color: #1e3c72; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #aaa; margin-bottom: 32px; }
+
+  .compare-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .col-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; text-align: center; margin-bottom: 12px; padding: 6px 4px; border-radius: 20px; color: white; }
+  .col-title.bar-title    { background: #1e3c72; }
+  .col-title.pie-title    { background: #6f42c1; }
+  .col-title.grad-title   { background: #2a9d8f; }
+  .col-title.strip-title  { background: #d63384; }
+  .col-title.accent-title { background: #6c757d; }
+
+  /* ── Panel ─────────────────────────────────── */
+  .panel { background: white; border-radius: 14px; box-shadow: 0 4px 24px rgba(0,0,0,0.10); overflow: visible; }
+  .panel-header { background: #1e3c72; color: white; padding: 14px 16px; border-radius: 14px 14px 0 0; }
+  .complaint-id { font-size: 14px; font-weight: 800; margin-bottom: 6px; }
+  .badges { display: flex; gap: 5px; flex-wrap: wrap; }
+  .badge { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 700; }
+  .badge-open     { background: rgba(255,255,255,0.15); color: white; }
+  .badge-critical { background: #f8d7da; color: #721c24; }
+  .badge-sla      { background: #ffc107; color: #333; }
+
+  .panel-body { padding: 16px; }
+  .info-row { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid #f8f8f8; }
+  .info-label { color: #aaa; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; }
+  .divider { border: none; border-top: 2px solid #f0f0f0; margin: 14px 0; }
+  .form-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: #aaa; display: block; margin-bottom: 6px; }
+
+  /* ── Rec tip ─────────────────────────────── */
+  .rec-tip { background: #f0f7ff; border: 1px solid #bdd7f5; border-radius: 7px; padding: 7px 10px; font-size: 11px; color: #1e3c72; margin-bottom: 8px; }
+
+  /* ── Hint block ──────────────────────────── */
+  .hint-block { margin-top: 10px; padding: 10px 12px; border-radius: 8px; font-size: 11px; border: 1px solid transparent; display: none; }
+  .hint-green { background: #f0fff4; border-color: #b2dfdb; color: #155724; }
+  .hint-amber { background: #fff8f0; border-color: #ffd180; color: #7d4e00; }
+  .hint-red   { background: #fff5f5; border-color: #ffcdd2; color: #7f1d1d; }
+  .hint-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; }
+  .hint-name  { font-size: 12px; font-weight: 700; }
+  .hint-count { font-size: 11px; font-weight: 700; }
+
+  /* ── Segmented bar ───────────────────────── */
+  .seg-bar-wrap { background: #f0f0f0; border-radius: 6px; height: 9px; overflow: hidden; flex: 1; }
+  .seg-bar { display: flex; height: 100%; }
+  .seg { height: 100%; }
+  .seg-c { background: #dc3545; } .seg-h { background: #fd7e14; }
+  .seg-m { background: #ffc107; } .seg-l { background: #28a745; }
+  .bar-row { display: flex; align-items: center; gap: 7px; }
+  .bar-pct { font-size: 10px; font-weight: 800; min-width: 28px; text-align: right; }
+  .legend { display: flex; gap: 8px; margin-top: 5px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 3px; font-size: 9px; color: #888; }
+  .legend-dot { width: 7px; height: 7px; border-radius: 2px; }
+
+  /* ── Buttons ─────────────────────────────── */
+  .btn-row { display: flex; gap: 6px; margin-top: 10px; }
+  .btn { padding: 7px 12px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; }
+  .btn-primary { background: #1e3c72; color: white; flex: 1; }
+  .btn-ghost   { background: #f0f0f0; color: #555; flex: 1; }
+
+  /* ── Option A: native select ─────────────── */
+  .form-select-bar { width: 100%; padding: 7px 9px; border: 1.5px solid #ddd; border-radius: 7px; font-size: 12px; color: #333; background: white; cursor: pointer; }
+  .form-select-bar:focus { outline: none; border-color: #1e3c72; }
+
+  /* ── Shared custom trigger ───────────────── */
+  .custom-trigger {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 7px 10px; border: 1.5px solid #ddd; border-radius: 7px;
+    background: white; cursor: pointer; font-size: 12px; color: #555; user-select: none;
+  }
+  .custom-trigger.open    { border-color: #6f42c1; }
+  .grad-trigger.open      { border-color: #2a9d8f !important; }
+  .strip-trigger.open     { border-color: #d63384 !important; }
+  .accent-trigger.open    { border-color: #6c757d !important; }
+  .chevron { font-size: 10px; color: #aaa; transition: transform 0.2s; }
+  .chevron.open { transform: rotate(180deg); }
+
+  .custom-dropdown {
+    display: none; position: fixed;
+    background: white; border-radius: 8px;
+    z-index: 1000; box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    overflow-y: auto; max-height: 300px;
+  }
+  .custom-dropdown.open { display: block; }
+
+  /* ── Shared row text classes ─────────────── */
+  .row-top  { display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 1; }
+  .row-name { font-size: 12px; font-weight: 700; color: #1e3c72; }
+  .row-sub  { font-size: 10px; color: #555; margin-top: 2px; position: relative; z-index: 1; }
+  .row-count { font-size: 11px; font-weight: 800; }
+  .star-badge { font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 8px; background: #d4edda; color: #155724; }
+  .warn-badge { font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 8px; background: #f8d7da; color: #721c24; }
+
+  /* ── Option B: pie option rows ───────────── */
+  .agent-option {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; cursor: pointer; border-bottom: 1px solid #f4f4f4;
+    transition: background 0.1s; border-left: 3px solid transparent;
+  }
+  .agent-option:last-child { border-bottom: none; }
+  .agent-option:hover    { background: #f5f0ff; }
+  .agent-option.selected { background: #ede7f6; border-left-color: #6f42c1; }
+  .agent-meta { flex: 1; min-width: 0; }
+  .agent-name-row { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+  .agent-opt-name { font-size: 12px; font-weight: 600; color: #333; }
+  .agent-opt-sub  { font-size: 10px; color: #aaa; margin-top: 2px; }
+  .agent-count-badge { font-size: 11px; font-weight: 800; min-width: 32px; text-align: right; }
+
+  /* ── Option C: gradient row ──────────────── */
+  .grad-option {
+    padding: 10px 12px; cursor: pointer;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    border-left: 3px solid transparent;
+    position: relative;
+  }
+  .grad-option::after {
+    content: ''; position: absolute; inset: 0;
+    pointer-events: none; transition: background 0.12s;
+  }
+  .grad-option:last-child { border-bottom: none; }
+  .grad-option:hover::after    { background: rgba(0,0,0,0.07); }
+  .grad-option.selected        { border-left-color: #2a9d8f; }
+  .grad-option.selected::after { background: rgba(42,157,143,0.08); }
+
+  /* ── Option D: bottom strip ──────────────── */
+  .strip-option {
+    padding: 10px 12px 13px; cursor: pointer;
+    border-bottom: 1px solid #f4f4f4;
+    border-left: 3px solid transparent;
+    background: white; position: relative;
+    transition: background 0.1s;
+  }
+  .strip-option:last-child { border-bottom: none; }
+  .strip-option:hover    { background: #f8f0f5; }
+  .strip-option.selected { background: #fce4f0; border-left-color: #d63384; }
+  .strip-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
+    pointer-events: none;
+  }
+
+  /* ── Option E: left border accent ───────── */
+  .accent-option {
+    padding: 10px 12px; cursor: pointer;
+    border-bottom: 1px solid #f4f4f4;
+    border-left: 4px solid #e0e0e0;
+    background: white;
+    transition: background 0.1s;
+  }
+  .accent-option:last-child { border-bottom: none; }
+  .accent-option:hover    { background: #f8f9fa; }
+  .accent-option.selected { background: #f0f0f0; }
+
+  /* ── Page legend ─────────────────────────── */
+  .page-legend { display: flex; gap: 16px; margin-top: 28px; font-size: 11px; color: #888; flex-wrap: wrap; align-items: center; }
+  .page-legend-item { display: flex; align-items: center; gap: 5px; }
+  .page-legend-swatch { width: 22px; height: 10px; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<h1>Assignment Hint — All Options</h1>
+<p class="subtitle">Select an agent in each panel to compare all five approaches side by side.</p>
+
+<div class="compare-grid">
+
+  <!-- ══ Option A — Native Select + Bar ══ -->
+  <div>
+    <div class="col-title bar-title">A — Native Select + Bar</div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="complaint-id">CMP-20250523-004</div>
+        <div class="badges">
+          <span class="badge badge-open">Open</span>
+          <span class="badge badge-critical">Critical · Billing</span>
+          <span class="badge badge-sla">⚠ SLA</span>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="info-row"><span class="info-label">Customer</span><span>Rajesh Iyer</span></div>
+        <div class="info-row"><span class="info-label">Category</span><span>Billing</span></div>
+        <div class="info-row"><span class="info-label">SLA</span><span style="font-weight:700;color:#dc3545">23 May, 13:14</span></div>
+        <hr class="divider" />
+        <p class="form-label">Assign Agent <span style="color:#dc3545">*</span></p>
+        <div class="rec-tip">💡 <strong>Bob Kumar</strong> — lightest load (2 / 8 · 25%)</div>
+        <select class="form-select-bar" onchange="onBarSelect(this.value)">
+          <option value="">— Select agent —</option>
+          <option value="bob">★ Bob Kumar — 2 / 8</option>
+          <option value="alice">Alice Chen — 3 / 10</option>
+          <option value="charlie">Charlie Davis — 7 / 10</option>
+          <option value="diana">⚠ Diana Patel — 11 / 12</option>
+          <option value="eve">⚠ Eve Johnson — 7 / 8</option>
+        </select>
+        <div class="hint-block" id="bar-hint"></div>
+        <div class="btn-row">
+          <button class="btn btn-ghost">Cancel</button>
+          <button class="btn btn-primary">Assign</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Option B — Custom Dropdown + Pie ══ -->
+  <div>
+    <div class="col-title pie-title">B — Pie Chart</div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="complaint-id">CMP-20250523-004</div>
+        <div class="badges">
+          <span class="badge badge-open">Open</span>
+          <span class="badge badge-critical">Critical · Billing</span>
+          <span class="badge badge-sla">⚠ SLA</span>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="info-row"><span class="info-label">Customer</span><span>Rajesh Iyer</span></div>
+        <div class="info-row"><span class="info-label">Category</span><span>Billing</span></div>
+        <div class="info-row"><span class="info-label">SLA</span><span style="font-weight:700;color:#dc3545">23 May, 13:14</span></div>
+        <hr class="divider" />
+        <p class="form-label">Assign Agent <span style="color:#dc3545">*</span></p>
+        <div class="rec-tip">💡 <strong>Bob Kumar</strong> — lightest load (2 / 8 · 25%)</div>
+        <div style="position:relative">
+          <div class="custom-trigger" id="pie-trigger" onclick="togglePie()">
+            <span id="pie-trigger-text">— Select agent —</span>
+            <span class="chevron" id="pie-chevron">▼</span>
+          </div>
+          <div class="custom-dropdown" id="pie-dropdown" style="border:1.5px solid #6f42c1"></div>
+        </div>
+        <div class="hint-block" id="pie-hint"></div>
+        <div class="btn-row">
+          <button class="btn btn-ghost">Cancel</button>
+          <button class="btn btn-primary" style="background:#6f42c1">Assign</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Option C — Priority Gradient Row ══ -->
+  <div>
+    <div class="col-title grad-title">C — Priority Gradient</div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="complaint-id">CMP-20250523-004</div>
+        <div class="badges">
+          <span class="badge badge-open">Open</span>
+          <span class="badge badge-critical">Critical · Billing</span>
+          <span class="badge badge-sla">⚠ SLA</span>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="info-row"><span class="info-label">Customer</span><span>Rajesh Iyer</span></div>
+        <div class="info-row"><span class="info-label">Category</span><span>Billing</span></div>
+        <div class="info-row"><span class="info-label">SLA</span><span style="font-weight:700;color:#dc3545">23 May, 13:14</span></div>
+        <hr class="divider" />
+        <p class="form-label">Assign Agent <span style="color:#dc3545">*</span></p>
+        <div class="rec-tip">💡 <strong>Bob Kumar</strong> — lightest load (2 / 8 · 25%)</div>
+        <div style="position:relative">
+          <div class="custom-trigger grad-trigger" id="grad-trigger" onclick="toggleGrad()">
+            <span id="grad-trigger-text">— Select agent —</span>
+            <span class="chevron" id="grad-chevron">▼</span>
+          </div>
+          <div class="custom-dropdown" id="grad-dropdown" style="border:1.5px solid #2a9d8f"></div>
+        </div>
+        <div class="hint-block" id="grad-hint"></div>
+        <div class="btn-row">
+          <button class="btn btn-ghost">Cancel</button>
+          <button class="btn btn-primary" style="background:#2a9d8f">Assign</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Option D — Bottom Strip ══ -->
+  <div>
+    <div class="col-title strip-title">D — Bottom Strip</div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="complaint-id">CMP-20250523-004</div>
+        <div class="badges">
+          <span class="badge badge-open">Open</span>
+          <span class="badge badge-critical">Critical · Billing</span>
+          <span class="badge badge-sla">⚠ SLA</span>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="info-row"><span class="info-label">Customer</span><span>Rajesh Iyer</span></div>
+        <div class="info-row"><span class="info-label">Category</span><span>Billing</span></div>
+        <div class="info-row"><span class="info-label">SLA</span><span style="font-weight:700;color:#dc3545">23 May, 13:14</span></div>
+        <hr class="divider" />
+        <p class="form-label">Assign Agent <span style="color:#dc3545">*</span></p>
+        <div class="rec-tip">💡 <strong>Bob Kumar</strong> — lightest load (2 / 8 · 25%)</div>
+        <div style="position:relative">
+          <div class="custom-trigger strip-trigger" id="strip-trigger" onclick="toggleStrip()">
+            <span id="strip-trigger-text">— Select agent —</span>
+            <span class="chevron" id="strip-chevron">▼</span>
+          </div>
+          <div class="custom-dropdown" id="strip-dropdown" style="border:1.5px solid #d63384"></div>
+        </div>
+        <div class="hint-block" id="strip-hint"></div>
+        <div class="btn-row">
+          <button class="btn btn-ghost">Cancel</button>
+          <button class="btn btn-primary" style="background:#d63384">Assign</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Option E — Left Border Accent ══ -->
+  <div>
+    <div class="col-title accent-title">E — Left Border</div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="complaint-id">CMP-20250523-004</div>
+        <div class="badges">
+          <span class="badge badge-open">Open</span>
+          <span class="badge badge-critical">Critical · Billing</span>
+          <span class="badge badge-sla">⚠ SLA</span>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="info-row"><span class="info-label">Customer</span><span>Rajesh Iyer</span></div>
+        <div class="info-row"><span class="info-label">Category</span><span>Billing</span></div>
+        <div class="info-row"><span class="info-label">SLA</span><span style="font-weight:700;color:#dc3545">23 May, 13:14</span></div>
+        <hr class="divider" />
+        <p class="form-label">Assign Agent <span style="color:#dc3545">*</span></p>
+        <div class="rec-tip">💡 <strong>Bob Kumar</strong> — lightest load (2 / 8 · 25%)</div>
+        <div style="position:relative">
+          <div class="custom-trigger accent-trigger" id="accent-trigger" onclick="toggleAccent()">
+            <span id="accent-trigger-text">— Select agent —</span>
+            <span class="chevron" id="accent-chevron">▼</span>
+          </div>
+          <div class="custom-dropdown" id="accent-dropdown" style="border:1.5px solid #6c757d"></div>
+        </div>
+        <div class="hint-block" id="accent-hint"></div>
+        <div class="btn-row">
+          <button class="btn btn-ghost">Cancel</button>
+          <button class="btn btn-primary" style="background:#6c757d">Assign</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Legend -->
+<div class="page-legend">
+  <strong style="color:#555;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">Priority colors:</strong>
+  <div class="page-legend-item"><div class="page-legend-swatch" style="background:#dc3545"></div>Critical</div>
+  <div class="page-legend-item"><div class="page-legend-swatch" style="background:#fd7e14"></div>High</div>
+  <div class="page-legend-item"><div class="page-legend-swatch" style="background:#ffc107"></div>Medium</div>
+  <div class="page-legend-item"><div class="page-legend-swatch" style="background:#28a745"></div>Low</div>
+  <div class="page-legend-item"><div class="page-legend-swatch" style="background:#e0e0e0"></div>Free capacity</div>
+  <span style="color:#bbb;margin-left:4px">· C = gradient bg · D = 4px bottom strip · E = load-level border color</span>
+</div>
+
+<script>
+const AGENTS = {
+  bob:     { name:"Bob Kumar",     max:8,  p:{c:0,h:1,m:1,l:0}, status:"green", label:"Lightest",  icon:"★" },
+  alice:   { name:"Alice Chen",    max:10, p:{c:1,h:1,m:1,l:0}, status:"green", label:"Available", icon:"✓" },
+  charlie: { name:"Charlie Davis", max:10, p:{c:1,h:2,m:3,l:1}, status:"amber", label:"Busy",      icon:"⚠" },
+  diana:   { name:"Diana Patel",   max:12, p:{c:3,h:4,m:3,l:1}, status:"red",   label:"Near Full", icon:"✕" },
+  eve:     { name:"Eve Johnson",   max:8,  p:{c:2,h:2,m:2,l:1}, status:"red",   label:"Near Full", icon:"✕" },
+};
+
+const SC = { green:"#28a745", amber:"#fd7e14", red:"#dc3545" };
+function used(a) { return a.p.c + a.p.h + a.p.m + a.p.l; }
+function pct(a)  { return Math.round((used(a) / a.max) * 100); }
+
+function buildHint(a) {
+  const u = used(a), p = pct(a), sc = SC[a.status];
+  const cW=(a.p.c/a.max)*100, hW=(a.p.h/a.max)*100, mW=(a.p.m/a.max)*100, lW=(a.p.l/a.max)*100;
+  return `
+    <div class="hint-top">
+      <span class="hint-name">${a.icon} ${a.name}</span>
+      <span class="hint-count" style="color:${sc}">${a.label}</span>
+    </div>
+    <div class="bar-row">
+      <div class="seg-bar-wrap"><div class="seg-bar">
+        <div class="seg seg-c" style="width:${cW}%"></div>
+        <div class="seg seg-h" style="width:${hW}%"></div>
+        <div class="seg seg-m" style="width:${mW}%"></div>
+        <div class="seg seg-l" style="width:${lW}%"></div>
+      </div></div>
+      <span class="bar-pct" style="color:${sc}">${p}%</span>
+    </div>
+    <div class="legend">
+      ${a.p.c>0?`<span class="legend-item"><span class="legend-dot" style="background:#dc3545"></span>${a.p.c} Critical</span>`:''}
+      ${a.p.h>0?`<span class="legend-item"><span class="legend-dot" style="background:#fd7e14"></span>${a.p.h} High</span>`:''}
+      ${a.p.m>0?`<span class="legend-item"><span class="legend-dot" style="background:#ffc107"></span>${a.p.m} Medium</span>`:''}
+      ${a.p.l>0?`<span class="legend-item"><span class="legend-dot" style="background:#28a745"></span>${a.p.l} Low</span>`:''}
+      <span class="legend-item" style="margin-left:auto;font-weight:700;color:${sc}">${u}/${a.max}</span>
+    </div>`;
+}
+
+/* ── Shared: position dropdown (open up or down) ──── */
+function positionDD(dd, triggerId) {
+  const rect = document.getElementById(triggerId).getBoundingClientRect();
+  const spaceBelow = window.innerHeight - rect.bottom;
+  const spaceAbove = rect.top;
+  dd.style.left  = `${rect.left}px`;
+  dd.style.width = `${rect.width}px`;
+  if (spaceBelow < 220 && spaceAbove > spaceBelow) {
+    dd.style.top       = "";
+    dd.style.bottom    = `${window.innerHeight - rect.top + 4}px`;
+    dd.style.maxHeight = `${Math.min(300, spaceAbove - 8)}px`;
+  } else {
+    dd.style.bottom    = "";
+    dd.style.top       = `${rect.bottom + 4}px`;
+    dd.style.maxHeight = `${Math.min(300, spaceBelow - 8)}px`;
+  }
+}
+
+function toggleDD(dd, triggerId, chevronId, openFlagRef) {
+  const open = !openFlagRef.open;
+  openFlagRef.open = open;
+  if (open) positionDD(dd, triggerId);
+  dd.classList.toggle("open", open);
+  document.getElementById(triggerId).classList.toggle("open", open);
+  document.getElementById(chevronId).classList.toggle("open", open);
+}
+
+function closeDD(dd, triggerId, chevronId, openFlagRef) {
+  openFlagRef.open = false;
+  dd.classList.remove("open");
+  document.getElementById(triggerId).classList.remove("open");
+  document.getElementById(chevronId).classList.remove("open");
+}
+
+function subText(a) {
+  return [
+    a.p.c > 0 ? `${a.p.c}C` : "",
+    a.p.h > 0 ? `${a.p.h}H` : "",
+    a.p.m > 0 ? `${a.p.m}M` : "",
+    a.p.l > 0 ? `${a.p.l}L` : "",
+  ].filter(Boolean).join(" · ") + ` · ${pct(a)}% load`;
+}
+
+/* ─────────────────────────────────────────────────────
+   Option A — native select
+───────────────────────────────────────────────────── */
+function onBarSelect(key) {
+  const block = document.getElementById("bar-hint");
+  if (!key) { block.style.display = "none"; return; }
+  const a = AGENTS[key];
+  block.className = `hint-block hint-${a.status}`;
+  block.style.display = "block";
+  block.innerHTML = buildHint(a);
+}
+
+/* ─────────────────────────────────────────────────────
+   Option B — pie chart rows
+───────────────────────────────────────────────────── */
+function makePie(a, size=34, hole=0.55) {
+  const r=size/2, cx=r, cy=r;
+  const segs=[{k:"c",v:a.p.c},{k:"h",v:a.p.h},{k:"m",v:a.p.m},{k:"l",v:a.p.l},{k:"free",v:a.max-used(a)}];
+  const cols={c:"#dc3545",h:"#fd7e14",m:"#ffc107",l:"#28a745",free:"#e9ecef"};
+  let svg=`<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">`, angle=-Math.PI/2;
+  segs.forEach(s=>{
+    if(s.v<=0) return;
+    const sl=(s.v/a.max)*2*Math.PI;
+    const x1=cx+r*Math.cos(angle),y1=cy+r*Math.sin(angle);
+    const x2=cx+r*Math.cos(angle+sl),y2=cy+r*Math.sin(angle+sl);
+    const lg=sl>Math.PI?1:0, ir=r*hole;
+    const ix1=cx+ir*Math.cos(angle+sl),iy1=cy+ir*Math.sin(angle+sl);
+    const ix2=cx+ir*Math.cos(angle),iy2=cy+ir*Math.sin(angle);
+    svg+=`<path d="M${x1},${y1} A${r},${r} 0 ${lg},1 ${x2},${y2} L${ix1},${iy1} A${ir},${ir} 0 ${lg},0 ${ix2},${iy2} Z" fill="${cols[s.k]}"/>`;
+    angle+=sl;
+  });
+  return svg+`</svg>`;
+}
+
+const pieDD = document.getElementById("pie-dropdown");
+const pieFlag = { open: false };
+Object.entries(AGENTS).forEach(([key,a])=>{
+  const u=used(a), sc=SC[a.status];
+  const badge=key==="bob"?`<span class="star-badge">★ Rec</span>`:a.status==="red"?`<span class="warn-badge">⚠ Near Full</span>`:"";
+  const div=document.createElement("div");
+  div.className="agent-option";
+  div.innerHTML=`
+    <div>${makePie(a)}</div>
+    <div class="agent-meta">
+      <div class="agent-name-row"><span class="agent-opt-name">${a.name}</span>${badge}</div>
+      <div class="agent-opt-sub">${subText(a)}</div>
+    </div>
+    <span class="agent-count-badge" style="color:${sc}">${u}/${a.max}</span>`;
+  div.onclick=()=>{
+    document.querySelectorAll(".agent-option").forEach(o=>o.classList.remove("selected"));
+    div.classList.add("selected");
+    closeDD(pieDD,"pie-trigger","pie-chevron",pieFlag);
+    document.getElementById("pie-trigger-text").textContent=`${a.name} — ${u}/${a.max}`;
+    const block=document.getElementById("pie-hint");
+    block.className=`hint-block hint-${a.status}`; block.style.display="block";
+    block.innerHTML=buildHint(a);
+  };
+  pieDD.appendChild(div);
+});
+function togglePie(){ toggleDD(pieDD,"pie-trigger","pie-chevron",pieFlag); }
+
+/* ─────────────────────────────────────────────────────
+   Option C — priority gradient row background
+───────────────────────────────────────────────────── */
+function makeRowGradient(a) {
+  const m=a.max, segs=[
+    {color:"rgba(220,53,69,0.22)",  count:a.p.c},
+    {color:"rgba(253,126,20,0.22)", count:a.p.h},
+    {color:"rgba(255,193,7,0.22)",  count:a.p.m},
+    {color:"rgba(40,167,69,0.22)",  count:a.p.l},
+  ];
+  let pos=0; const stops=[];
+  segs.forEach(({color,count})=>{
+    if(count<=0) return;
+    const end=pos+(count/m)*100;
+    stops.push(`${color} ${pos.toFixed(1)}%`,`${color} ${end.toFixed(1)}%`);
+    pos=end;
+  });
+  if(pos<100) stops.push(`#f0f0f0 ${pos.toFixed(1)}%`,`#f0f0f0 100%`);
+  return `linear-gradient(to right,${stops.join(",")})`;
+}
+
+const gradDD = document.getElementById("grad-dropdown");
+const gradFlag = { open: false };
+Object.entries(AGENTS).forEach(([key,a])=>{
+  const u=used(a), sc=SC[a.status];
+  const badge=key==="bob"?`<span class="star-badge">★ Rec</span>`:a.status==="red"?`<span class="warn-badge">⚠ Near Full</span>`:"";
+  const div=document.createElement("div");
+  div.className="grad-option";
+  div.style.background=makeRowGradient(a);
+  div.innerHTML=`
+    <div class="row-top"><span class="row-name">${a.name} ${badge}</span><span class="row-count" style="color:${sc}">${u}/${a.max}</span></div>
+    <div class="row-sub">${subText(a)}</div>`;
+  div.onclick=()=>{
+    document.querySelectorAll(".grad-option").forEach(o=>o.classList.remove("selected"));
+    div.classList.add("selected");
+    closeDD(gradDD,"grad-trigger","grad-chevron",gradFlag);
+    document.getElementById("grad-trigger-text").textContent=`${a.name} — ${u}/${a.max}`;
+    const block=document.getElementById("grad-hint");
+    block.className=`hint-block hint-${a.status}`; block.style.display="block";
+    block.innerHTML=buildHint(a);
+  };
+  gradDD.appendChild(div);
+});
+function toggleGrad(){ toggleDD(gradDD,"grad-trigger","grad-chevron",gradFlag); }
+
+/* ─────────────────────────────────────────────────────
+   Option D — bottom strip (white row, colored bottom strip)
+───────────────────────────────────────────────────── */
+function makeStripGradient(a) {
+  const m=a.max, segs=[
+    {color:"#dc3545",count:a.p.c},
+    {color:"#fd7e14",count:a.p.h},
+    {color:"#ffc107",count:a.p.m},
+    {color:"#28a745",count:a.p.l},
+  ];
+  let pos=0; const stops=[];
+  segs.forEach(({color,count})=>{
+    if(count<=0) return;
+    const end=pos+(count/m)*100;
+    stops.push(`${color} ${pos.toFixed(1)}%`,`${color} ${end.toFixed(1)}%`);
+    pos=end;
+  });
+  if(pos<100) stops.push(`#e0e0e0 ${pos.toFixed(1)}%`,`#e0e0e0 100%`);
+  return `linear-gradient(to right,${stops.join(",")})`;
+}
+
+const stripDD = document.getElementById("strip-dropdown");
+const stripFlag = { open: false };
+Object.entries(AGENTS).forEach(([key,a])=>{
+  const u=used(a), sc=SC[a.status];
+  const badge=key==="bob"?`<span class="star-badge">★ Rec</span>`:a.status==="red"?`<span class="warn-badge">⚠ Near Full</span>`:"";
+  const div=document.createElement("div");
+  div.className="strip-option";
+  div.innerHTML=`
+    <div class="row-top"><span class="row-name">${a.name} ${badge}</span><span class="row-count" style="color:${sc}">${u}/${a.max}</span></div>
+    <div class="row-sub">${subText(a)}</div>
+    <div class="strip-bar" style="background:${makeStripGradient(a)}"></div>`;
+  div.onclick=()=>{
+    document.querySelectorAll(".strip-option").forEach(o=>o.classList.remove("selected"));
+    div.classList.add("selected");
+    closeDD(stripDD,"strip-trigger","strip-chevron",stripFlag);
+    document.getElementById("strip-trigger-text").textContent=`${a.name} — ${u}/${a.max}`;
+    const block=document.getElementById("strip-hint");
+    block.className=`hint-block hint-${a.status}`; block.style.display="block";
+    block.innerHTML=buildHint(a);
+  };
+  stripDD.appendChild(div);
+});
+function toggleStrip(){ toggleDD(stripDD,"strip-trigger","strip-chevron",stripFlag); }
+
+/* ─────────────────────────────────────────────────────
+   Option E — left border accent (load-level color)
+───────────────────────────────────────────────────── */
+const accentDD = document.getElementById("accent-dropdown");
+const accentFlag = { open: false };
+Object.entries(AGENTS).forEach(([key,a])=>{
+  const u=used(a), sc=SC[a.status];
+  const badge=key==="bob"?`<span class="star-badge">★ Rec</span>`:a.status==="red"?`<span class="warn-badge">⚠ Near Full</span>`:"";
+  const div=document.createElement("div");
+  div.className="accent-option";
+  div.style.borderLeftColor=sc;
+  div.innerHTML=`
+    <div class="row-top"><span class="row-name">${a.name} ${badge}</span><span class="row-count" style="color:${sc}">${u}/${a.max}</span></div>
+    <div class="row-sub">${subText(a)}</div>`;
+  div.onclick=()=>{
+    document.querySelectorAll(".accent-option").forEach(o=>o.classList.remove("selected"));
+    div.classList.add("selected");
+    closeDD(accentDD,"accent-trigger","accent-chevron",accentFlag);
+    document.getElementById("accent-trigger-text").textContent=`${a.name} — ${u}/${a.max}`;
+    const block=document.getElementById("accent-hint");
+    block.className=`hint-block hint-${a.status}`; block.style.display="block";
+    block.innerHTML=buildHint(a);
+  };
+  accentDD.appendChild(div);
+});
+function toggleAccent(){ toggleDD(accentDD,"accent-trigger","accent-chevron",accentFlag); }
+
+/* ── Close all dropdowns on outside click ─────────── */
+document.addEventListener("click", e => {
+  const pairs = [
+    { dd:pieDD,    tid:"pie-trigger",    cid:"pie-chevron",    flag:pieFlag    },
+    { dd:gradDD,   tid:"grad-trigger",   cid:"grad-chevron",   flag:gradFlag   },
+    { dd:stripDD,  tid:"strip-trigger",  cid:"strip-chevron",  flag:stripFlag  },
+    { dd:accentDD, tid:"accent-trigger", cid:"accent-chevron", flag:accentFlag },
+  ];
+  pairs.forEach(({dd,tid,cid,flag})=>{
+    if(!e.target.closest(`#${tid}`)&&!e.target.closest(`#${dd.id}`)){
+      closeDD(dd,tid,cid,flag);
+    }
+  });
+});
+</script>
+</body>
+</html>

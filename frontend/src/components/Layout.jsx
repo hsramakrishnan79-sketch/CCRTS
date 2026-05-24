@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import API from "../services/api";
 import {
   FaHome, FaClipboardList, FaPlusCircle, FaUsers,
-  FaExclamationTriangle, FaInbox, FaSignOutAlt, FaChartBar, FaUserCog, FaSpinner, FaClock,
+  FaExclamationTriangle, FaInbox, FaSignOutAlt, FaChartBar, FaUserCog, FaSpinner, FaClock, FaChartPie,
 } from "react-icons/fa";
 import NotificationBell from "./NotificationBell";
 import { SCORE_COLOR } from "../utils/styleHelpers";
@@ -25,6 +25,7 @@ const PAGE_TITLES = {
   "/sla-breached":            "SLA Breached",
   "/admin/users":             "User Management",
   "/admin/agent-categories":  "Agent Categories",
+  "/admin/agent-workload":    "Agent Workload",
   "/reports":                 "Reports",
   "/agent-queue":             "My Queue",
   "/create-complaint":        "Submit Complaint",
@@ -44,6 +45,7 @@ const NAV = {
     { groupLabel: "Administration" },
     { label: "User Management",  path: "/admin/users",             icon: <FaUsers />,              indented: true },
     { label: "Agent Categories", path: "/admin/agent-categories",  icon: <FaUserCog />,            indented: true },
+    { label: "Agent Workload",   path: "/admin/agent-workload",    icon: <FaChartPie />,           indented: true },
     { label: "Reports",          path: "/reports",                 icon: <FaChartBar /> },
   ],
   supervisor: [
@@ -54,6 +56,7 @@ const NAV = {
     { label: "Status Queue",     path: "/admin/status-queue",       icon: <FaSpinner />,             indented: true },
     { label: "Escalations",      path: "/escalation",               icon: <FaExclamationTriangle />, indented: true },
     { label: "SLA Breached",     path: "/sla-breached",              icon: <FaClock />,              indented: true },
+    { label: "Agent Workload",   path: "/admin/agent-workload",    icon: <FaChartPie />,           indented: true },
     { label: "Reports",          path: "/reports",                 icon: <FaChartBar /> },
   ],
   agent: [

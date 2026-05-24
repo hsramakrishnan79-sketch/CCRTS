@@ -55,8 +55,13 @@ const createUser = async (req, res) => {
 
     const roleRow = db.prepare("SELECT id FROM roles WHERE role_name = ?").get(role);
     const hashed = await bcrypt.hash(password, 10);
-    db.prepare("INSERT INTO users (name, email, phone, password, role_id) VALUES (?, ?, ?, ?, ?)")
+    const result = db.prepare("INSERT INTO users (name, email, phone, password, role_id) VALUES (?, ?, ?, ?, ?)")
       .run(name, email, phone ?? null, hashed, roleRow.id);
+
+    if (role === "agent") {
+      db.prepare("INSERT OR IGNORE INTO agent_settings (agent_id, max_capacity) VALUES (?, 10)")
+        .run(result.lastInsertRowid);
+    }
 
     res.status(201).json({ message: "User created successfully" });
   } catch (error) {

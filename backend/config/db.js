@@ -198,6 +198,22 @@ CREATE TABLE IF NOT EXISTS notifications (
 );
 `);
 
+// ── AGENT SETTINGS ────────────────────────────────────────────────────────────
+db.exec(`
+CREATE TABLE IF NOT EXISTS agent_settings (
+    agent_id     INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    max_capacity INTEGER NOT NULL DEFAULT 5
+);
+`);
+
+// Seed a default row for any existing agent who doesn't have one yet
+db.exec(`
+INSERT OR IGNORE INTO agent_settings (agent_id, max_capacity)
+SELECT u.id, 5 FROM users u
+JOIN roles r ON r.id = u.role_id
+WHERE r.role_name = 'agent';
+`);
+
 // ── USERS: reset token columns (added Phase 2) ────────────────────────────────
 try { db.exec(`ALTER TABLE users ADD COLUMN reset_token TEXT`); } catch {}
 try { db.exec(`ALTER TABLE users ADD COLUMN reset_token_expires DATETIME`); } catch {}

@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agent Dropdown — Pie Chart Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f4f6f9; color: #333; padding: 32px 24px; }
+
+  h1 { font-size: 22px; font-weight: 800; color: #1e3c72; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #aaa; margin-bottom: 32px; }
+
+  .two-col { display: grid; grid-template-columns: 340px 1fr; gap: 32px; align-items: flex-start; }
+
+  /* ── Panel shell ─────────────────────────────── */
+  .panel { background: white; border-radius: 14px; box-shadow: 0 4px 24px rgba(0,0,0,0.10); overflow: hidden; }
+  .panel-header { background: #1e3c72; color: white; padding: 16px 20px; }
+  .complaint-id { font-size: 15px; font-weight: 800; margin-bottom: 6px; }
+  .badges { display: flex; gap: 6px; }
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+  .badge-open     { background: rgba(255,255,255,0.15); color: white; }
+  .badge-critical { background: #f8d7da; color: #721c24; }
+  .badge-sla      { background: #ffc107; color: #333; }
+
+  .panel-body { padding: 20px; }
+
+  .info-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 1px solid #f8f8f8; }
+  .info-label { color: #aaa; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; }
+  .divider { border: none; border-top: 2px solid #f0f0f0; margin: 16px 0; }
+  .form-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: #aaa; display: block; margin-bottom: 6px; }
+
+  /* ── Rec tip ─────────────────────────────────── */
+  .rec-tip { background: #f0f7ff; border: 1px solid #bdd7f5; border-radius: 7px; padding: 8px 12px; font-size: 12px; color: #1e3c72; margin-bottom: 8px; }
+
+  /* ── Custom dropdown ─────────────────────────── */
+  .custom-select-wrap { position: relative; }
+
+  .custom-trigger {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px; border: 1.5px solid #ddd; border-radius: 7px;
+    background: white; cursor: pointer; font-size: 13px; color: #555;
+    user-select: none; transition: border-color 0.15s;
+  }
+  .custom-trigger:hover { border-color: #1e3c72; }
+  .custom-trigger.open  { border-color: #1e3c72; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+  .chevron { font-size: 10px; color: #aaa; transition: transform 0.2s; }
+  .chevron.open { transform: rotate(180deg); }
+
+  .custom-dropdown {
+    display: none; position: fixed;
+    background: white; border: 1.5px solid #1e3c72;
+    border-radius: 7px;
+    z-index: 1000; box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    overflow-y: auto; max-height: 280px;
+  }
+  .custom-dropdown.open { display: block; }
+
+  .agent-option {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px; cursor: pointer; border-bottom: 1px solid #f4f4f4;
+    transition: background 0.1s;
+  }
+  .agent-option:last-child { border-bottom: none; }
+  .agent-option:hover    { background: #f0f4ff; }
+  .agent-option.selected { background: #eef4ff; }
+
+  .agent-pie { flex-shrink: 0; }
+
+  .agent-meta { flex: 1; min-width: 0; }
+  .agent-name-row { display: flex; align-items: center; gap: 6px; }
+  .agent-opt-name { font-size: 13px; font-weight: 600; color: #1e3c72; }
+  .star-badge { font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 8px; background: #d4edda; color: #155724; }
+  .warn-badge { font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 8px; background: #f8d7da; color: #721c24; }
+
+  .agent-opt-sub { font-size: 11px; color: #aaa; margin-top: 2px; }
+
+  .agent-count { font-size: 12px; font-weight: 800; min-width: 36px; text-align: right; }
+
+  /* ── Hint block ──────────────────────────────── */
+  .hint-block { margin-top: 10px; padding: 11px 13px; border-radius: 8px; font-size: 12px; border: 1px solid transparent; display: none; }
+  .hint-green { background: #f0fff4; border-color: #b2dfdb; color: #155724; }
+  .hint-amber { background: #fff8f0; border-color: #ffd180; color: #7d4e00; }
+  .hint-red   { background: #fff5f5; border-color: #ffcdd2; color: #7f1d1d; }
+
+  .hint-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .hint-name  { font-size: 13px; font-weight: 700; }
+  .hint-count { font-size: 12px; font-weight: 700; }
+
+  /* ── Segmented bar in hint block ─────────────── */
+  .seg-bar-wrap { background: #f0f0f0; border-radius: 6px; height: 10px; overflow: hidden; flex: 1; }
+  .seg-bar { display: flex; height: 100%; }
+  .seg { height: 100%; }
+  .seg-c { background: #dc3545; }
+  .seg-h { background: #fd7e14; }
+  .seg-m { background: #ffc107; }
+  .seg-l { background: #28a745; }
+  .bar-row { display: flex; align-items: center; gap: 8px; }
+  .bar-pct { font-size: 11px; font-weight: 800; min-width: 32px; text-align: right; }
+  .legend { display: flex; gap: 10px; margin-top: 6px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: #888; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+  /* ── Buttons ─────────────────────────────────── */
+  .btn-row { display: flex; gap: 8px; margin-top: 12px; }
+  .btn { padding: 8px 16px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
+  .btn-primary { background: #1e3c72; color: white; flex: 1; }
+  .btn-ghost   { background: #f0f0f0; color: #555; flex: 1; }
+
+  /* ── Right explain ───────────────────────────── */
+  .explain { display: flex; flex-direction: column; gap: 20px; }
+  .explain-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 6px rgba(0,0,0,0.07); }
+  .explain-card h3 { font-size: 14px; font-weight: 700; color: #1e3c72; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0; }
+  .pie-explain-row { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+  .pie-explain-row p { font-size: 13px; color: #555; line-height: 1.6; }
+  .legend-full { display: flex; flex-direction: column; gap: 8px; }
+  .legend-full-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #555; }
+  .legend-sq { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<h1>Agent Dropdown — Mini Pie Chart Option</h1>
+<p class="subtitle">Custom dropdown showing priority pie chart + load count per agent. Click the dropdown to interact.</p>
+
+<div class="two-col">
+
+  <!-- ── Left: interactive panel ──────────────── -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="complaint-id">CMP-20250523-004</div>
+      <div class="badges">
+        <span class="badge badge-open">Open</span>
+        <span class="badge badge-critical">Critical · Billing</span>
+        <span class="badge badge-sla">⚠ SLA</span>
+      </div>
+    </div>
+    <div class="panel-body">
+
+      <div class="info-row"><span class="info-label">Customer</span><span style="font-size:13px;font-weight:500">Rajesh Iyer</span></div>
+      <div class="info-row"><span class="info-label">Category</span><span style="font-size:13px;font-weight:500">Billing</span></div>
+      <div class="info-row"><span class="info-label">SLA Deadline</span><span style="font-size:13px;font-weight:700;color:#dc3545">23 May, 13:14</span></div>
+
+      <hr class="divider" />
+
+      <p class="form-label">Assign Agent <span style="color:#dc3545">*</span></p>
+
+      <div class="rec-tip">
+        💡 <strong>Bob Kumar</strong> is recommended — lightest load in Billing (2 / 8 · 25%)
+      </div>
+
+      <!-- Custom dropdown -->
+      <div class="custom-select-wrap">
+        <div class="custom-trigger" id="trigger" onclick="toggleDropdown()">
+          <span id="trigger-text">— Select agent —</span>
+          <span class="chevron" id="chevron">▼</span>
+        </div>
+        <div class="custom-dropdown" id="dropdown">
+          <!-- options injected by JS -->
+        </div>
+      </div>
+
+      <!-- Hint block -->
+      <div class="hint-block" id="hint-block"></div>
+
+      <div class="btn-row">
+        <button class="btn btn-ghost">Cancel</button>
+        <button class="btn btn-primary">Assign</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Right: explanation ─────────────────── -->
+  <div class="explain">
+
+    <div class="explain-card">
+      <h3>How the pie chart reads</h3>
+      <div class="pie-explain-row">
+        <div id="explain-pie"></div>
+        <p>Each slice shows how many of the agent's current complaints belong to that priority. The grey remainder is free capacity. Hover or select an agent to see the full breakdown below the dropdown.</p>
+      </div>
+      <div class="legend-full">
+        <div class="legend-full-item"><div class="legend-sq" style="background:#dc3545"></div> Critical</div>
+        <div class="legend-full-item"><div class="legend-sq" style="background:#fd7e14"></div> High</div>
+        <div class="legend-full-item"><div class="legend-sq" style="background:#ffc107"></div> Medium</div>
+        <div class="legend-full-item"><div class="legend-sq" style="background:#28a745"></div> Low</div>
+        <div class="legend-full-item"><div class="legend-sq" style="background:#e9ecef;border:1px solid #ddd"></div> Free capacity</div>
+      </div>
+    </div>
+
+    <div class="explain-card">
+      <h3>All agents at a glance</h3>
+      <div id="all-ref"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const AGENTS = [
+  { key:"bob",     name:"Bob Kumar",     max:8,  p:{c:0,h:1,m:1,l:0}, status:"green",  label:"Lightest", icon:"★" },
+  { key:"alice",   name:"Alice Chen",    max:10, p:{c:1,h:1,m:1,l:0}, status:"green",  label:"Available",icon:"✓" },
+  { key:"charlie", name:"Charlie Davis", max:10, p:{c:1,h:2,m:3,l:1}, status:"amber",  label:"Busy",     icon:"⚠" },
+  { key:"diana",   name:"Diana Patel",   max:12, p:{c:3,h:4,m:3,l:1}, status:"red",    label:"Near Full",icon:"✕" },
+  { key:"eve",     name:"Eve Johnson",   max:8,  p:{c:2,h:2,m:2,l:1}, status:"amber",  label:"Busy",     icon:"⚠" },
+];
+
+const COLORS = { c:"#dc3545", h:"#fd7e14", m:"#ffc107", l:"#28a745", free:"#e9ecef" };
+const STATUS_COLOR = { green:"#28a745", amber:"#fd7e14", red:"#dc3545" };
+
+function used(a) { return a.p.c + a.p.h + a.p.m + a.p.l; }
+function pct(a)  { return Math.round((used(a) / a.max) * 100); }
+
+// Draw SVG pie/donut chart
+function makePie(a, size=36, hole=0.55) {
+  const r = size / 2;
+  const cx = r, cy = r;
+  const segments = [
+    { key:"c", val: a.p.c }, { key:"h", val: a.p.h },
+    { key:"m", val: a.p.m }, { key:"l", val: a.p.l },
+    { key:"free", val: a.max - used(a) },
+  ];
+  let svg = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">`;
+  let angle = -Math.PI / 2;
+  segments.forEach(seg => {
+    if (seg.val <= 0) return;
+    const slice = (seg.val / a.max) * 2 * Math.PI;
+    const x1 = cx + r * Math.cos(angle);
+    const y1 = cy + r * Math.sin(angle);
+    const x2 = cx + r * Math.cos(angle + slice);
+    const y2 = cy + r * Math.sin(angle + slice);
+    const large = slice > Math.PI ? 1 : 0;
+    const ir = r * hole;
+    const ix1 = cx + ir * Math.cos(angle + slice);
+    const iy1 = cy + ir * Math.sin(angle + slice);
+    const ix2 = cx + ir * Math.cos(angle);
+    const iy2 = cy + ir * Math.sin(angle);
+    svg += `<path d="M${x1},${y1} A${r},${r} 0 ${large},1 ${x2},${y2} L${ix1},${iy1} A${ir},${ir} 0 ${large},0 ${ix2},${iy2} Z" fill="${COLORS[seg.key]}" />`;
+    angle += slice;
+  });
+  svg += `</svg>`;
+  return svg;
+}
+
+// Build dropdown options
+const dropdown = document.getElementById("dropdown");
+AGENTS.forEach(a => {
+  const u = used(a), p = pct(a);
+  const sc = STATUS_COLOR[a.status];
+  const badgeHtml = a.status === "green" && a.key === "bob"
+    ? `<span class="star-badge">★ Recommended</span>`
+    : a.status === "red"
+    ? `<span class="warn-badge">⚠ Near Full</span>`
+    : "";
+  const div = document.createElement("div");
+  div.className = "agent-option";
+  div.innerHTML = `
+    <div class="agent-pie">${makePie(a)}</div>
+    <div class="agent-meta">
+      <div class="agent-name-row">
+        <span class="agent-opt-name">${a.name}</span>
+        ${badgeHtml}
+      </div>
+      <div class="agent-opt-sub">${a.p.c}C · ${a.p.h}H · ${a.p.m}M · ${a.p.l}L complaints</div>
+    </div>
+    <span class="agent-count" style="color:${sc}">${u}/${a.max}</span>`;
+  div.onclick = () => selectAgent(a);
+  dropdown.appendChild(div);
+});
+
+// Explain pie — show Bob's pie large
+document.getElementById("explain-pie").innerHTML = makePie(
+  { p:{c:1,h:2,m:3,l:1}, max:12 }, 80, 0.5
+);
+
+// All agents reference
+const allRef = document.getElementById("all-ref");
+AGENTS.forEach(a => {
+  const u = used(a), p = pct(a);
+  const sc = STATUS_COLOR[a.status];
+  allRef.innerHTML += `
+    <div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #f4f4f4">
+      ${makePie(a, 32, 0.5)}
+      <span style="font-size:13px;font-weight:600;color:#1e3c72;flex:1">${a.name}</span>
+      <span style="font-size:12px;color:#aaa">${a.p.c}C ${a.p.h}H ${a.p.m}M ${a.p.l}L</span>
+      <span style="font-size:12px;font-weight:800;color:${sc};min-width:36px;text-align:right">${u}/${a.max}</span>
+    </div>`;
+});
+
+let open = false;
+let selected = null;
+
+function toggleDropdown() {
+  open = !open;
+  const trigger = document.getElementById("trigger");
+  const dd = document.getElementById("dropdown");
+  if (open) {
+    const rect = trigger.getBoundingClientRect();
+    dd.style.top   = `${rect.bottom + 4}px`;
+    dd.style.left  = `${rect.left}px`;
+    dd.style.width = `${rect.width}px`;
+  }
+  dd.classList.toggle("open", open);
+  trigger.classList.toggle("open", open);
+  document.getElementById("chevron").classList.toggle("open", open);
+}
+
+function selectAgent(a) {
+  selected = a;
+  open = false;
+  document.getElementById("dropdown").classList.remove("open");
+  document.getElementById("trigger").classList.remove("open");
+  document.getElementById("chevron").classList.remove("open");
+  document.getElementById("trigger-text").textContent = `${a.name} — ${used(a)} / ${a.max}`;
+
+  // Show hint block
+  const u = used(a), p = pct(a), sc = STATUS_COLOR[a.status];
+  const cW = (a.p.c/a.max)*100, hW = (a.p.h/a.max)*100, mW = (a.p.m/a.max)*100, lW = (a.p.l/a.max)*100;
+  const block = document.getElementById("hint-block");
+  block.className = `hint-block hint-${a.status}`;
+  block.style.display = "block";
+  block.innerHTML = `
+    <div class="hint-top">
+      <span class="hint-name">${a.icon} ${a.name}</span>
+      <span class="hint-count" style="color:${sc}">${a.label}</span>
+    </div>
+    <div class="bar-row">
+      <div class="seg-bar-wrap"><div class="seg-bar">
+        <div class="seg seg-c" style="width:${cW}%"></div>
+        <div class="seg seg-h" style="width:${hW}%"></div>
+        <div class="seg seg-m" style="width:${mW}%"></div>
+        <div class="seg seg-l" style="width:${lW}%"></div>
+      </div></div>
+      <span class="bar-pct" style="color:${sc}">${p}%</span>
+    </div>
+    <div class="legend">
+      ${a.p.c>0?`<span class="legend-item"><span class="legend-dot" style="background:#dc3545"></span>${a.p.c} Critical</span>`:''}
+      ${a.p.h>0?`<span class="legend-item"><span class="legend-dot" style="background:#fd7e14"></span>${a.p.h} High</span>`:''}
+      ${a.p.m>0?`<span class="legend-item"><span class="legend-dot" style="background:#ffc107"></span>${a.p.m} Medium</span>`:''}
+      ${a.p.l>0?`<span class="legend-item"><span class="legend-dot" style="background:#28a745"></span>${a.p.l} Low</span>`:''}
+      <span class="legend-item" style="margin-left:auto;font-weight:700;color:${sc}">${u} / ${a.max}</span>
+    </div>`;
+
+  // Mark selected in list
+  document.querySelectorAll(".agent-option").forEach(el => el.classList.remove("selected"));
+  dropdown.children[AGENTS.findIndex(x=>x.key===a.key)].classList.add("selected");
+}
+
+// Close on outside click
+document.addEventListener("click", e => {
+  if (!e.target.closest(".custom-select-wrap")) {
+    open = false;
+    document.getElementById("dropdown").classList.remove("open");
+    document.getElementById("trigger").classList.remove("open");
+    document.getElementById("chevron").classList.remove("open");
+  }
+});
+</script>
+</body>
+</html>
